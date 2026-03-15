@@ -5,265 +5,163 @@ import { createClient } from '@/lib/supabase/client'
 import { formatTime } from '@/lib/types'
 import Link from 'next/link'
 
-interface LiveResult {
-  id: string
-  place?: number
-  fat_time?: number
-  wind?: number
-  dq: boolean
-  dns: boolean
-  entries: {
-    athlete_id: string
-    athletes: { name: string }
-    teams: { name: string; color?: string }
-    events: { id: string; name: string; gender: string }
-  }
-}
-
-const SCORING_POINTS = [10, 8, 6, 5, 4, 3, 2, 1]
+const POINTS = [10, 8, 6, 5, 4, 3, 2, 1]
 
 export default function LivePage() {
   const { id: meetId } = useParams<{ id: string }>()
   const [meet, setMeet] = useState<any>(null)
-  const [results, setResults] = useState<LiveResult[]>([])
+  const [results, setResults] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
-  const [selectedEvent, setSelectedEvent] = useState<string>('all')
+  const [selectedEvent, setSelectedEvent] = useState('all')
   const [teamScores, setTeamScores] = useState<{ name: string; points: number }[]>([])
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [connected, setConnected] = useState(false)
 
-  const calcTeamScores = useCallback((res: LiveResult[]) => {
-    const byEvent: Record<string, LiveResult[]> = {}
+  const calcTeamScores = useCallback((res: any[]) => {
+    const byEvent: Record<string, any[]> = {}
     for (const r of res) {
-      const eid = r.entries?.events?.id
-      if (!eid) continue
+      const eid = r.entries?.events?.id; if (!eid) continue
       if (!byEvent[eid]) byEvent[eid] = []
       byEvent[eid].push(r)
     }
     const scores: Record<string, number> = {}
     for (const evResults of Object.values(byEvent)) {
-      evResults
-        .filter(r => !r.dq && !r.dns && r.place)
-        .sort((a, b) => (a.place || 99) - (b.place || 99))
-        .slice(0, 8)
-        .forEach((r, i) => {
-          const team = r.entries?.teams?.name || 'Unknown'
-          scores[team] = (scores[team] || 0) + (SCORING_POINTS[i] || 0)
-        })
+      evResults.filter((r: any) => !r.dq && !r.dns && r.place).sort((a: any, b: any) => a.place - b.place).slice(0, 8)
+        .forEach((r: any, i: number) => { const t = r.entries?.teams?.name || 'Unknown'; scores[t] = (scores[t] || 0) + (POINTS[i] || 0) })
     }
-    setTeamScores(
-      Object.entries(scores)
-        .map(([name, points]) => ({ name, points }))
-        .sort((a, b) => b.points - a.points)
-    )
+    setTeamScores(Object.entries(scores).map(([name, points]) => ({ name, points })).sort((a, b) => b.points - a.points))
   }, [])
 
   useEffect(() => {
     const supabase = createClient()
-
-    // Initial fetch
     Promise.all([
       supabase.from('meets').select('*, rulesets(*)').eq('id', meetId).single(),
       supabase.from('events').select('*').eq('meet_id', meetId).order('sort_order'),
-      supabase.from('results').select(`
-        id, place, fat_time, wind, dq, dns,
-        entries!inner(
-          athlete_id, meet_id,
-          athletes(name),
-          teams(name, color),
-          events(id, name, gender)
-        )
-      `).eq('entries.meet_id', meetId),
+      supabase.from('results').select(`id,place,fat_time,wind,dq,dns,created_at,entries!inner(athlete_id,meet_id,athletes(name),teams(name),events(id,name,gender))`).eq('entries.meet_id', meetId),
     ]).then(([m, ev, res]) => {
-      setMeet(m.data)
-      setEvents(ev.data || [])
-      const r = (res.data || []) as unknown as LiveResult[]
-      setResults(r)
-      calcTeamScores(r)
-      setLastUpdate(new Date())
+      setMeet(m.data); setEvents(ev.data || [])
+      setResults(res.data || []); calcTeamScores(res.data || []); setLastUpdate(new Date())
     })
-
-    // Realtime subscription
-    const channel = supabase
-      .channel(`live-meet-${meetId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'results',
-      }, async () => {
-        const { data } = await supabase.from('results').select(`
-          id, place, fat_time, wind, dq, dns,
-          entries!inner(
-            athlete_id, meet_id,
-            athletes(name),
-            teams(name, color),
-            events(id, name, gender)
-          )
-        `).eq('entries.meet_id', meetId)
-        const r = (data || []) as unknown as LiveResult[]
-        setResults(r)
-        calcTeamScores(r)
-        setLastUpdate(new Date())
+    const channel = supabase.channel(`live-${meetId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'results' }, async () => {
+        const { data } = await supabase.from('results').select(`id,place,fat_time,wind,dq,dns,created_at,entries!inner(athlete_id,meet_id,athletes(name),teams(name),events(id,name,gender))`).eq('entries.meet_id', meetId)
+        setResults(data || []); calcTeamScores(data || []); setLastUpdate(new Date())
       })
-      .subscribe((status) => {
-        setConnected(status === 'SUBSCRIBED')
-      })
-
+      .subscribe(s => setConnected(s === 'SUBSCRIBED'))
     return () => { supabase.removeChannel(channel) }
   }, [meetId, calcTeamScores])
 
-  const filteredResults = selectedEvent === 'all'
-    ? results
-    : results.filter(r => r.entries?.events?.id === selectedEvent)
-
-  const groupedByEvent: Record<string, LiveResult[]> = {}
-  for (const r of filteredResults) {
-    const key = r.entries?.events?.name || 'Unknown'
-    if (!groupedByEvent[key]) groupedByEvent[key] = []
-    groupedByEvent[key].push(r)
+  const filtered = selectedEvent === 'all' ? results : results.filter(r => r.entries?.events?.id === selectedEvent)
+  const grouped: Record<string, any[]> = {}
+  for (const r of filtered) {
+    const k = r.entries?.events?.name || 'Unknown'
+    if (!grouped[k]) grouped[k] = []
+    grouped[k].push(r)
   }
 
   return (
-    <div className="min-h-screen bg-[#080808]">
+    <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Header */}
-      <div className="border-b border-[#1a1a1a] bg-[#0D0D0D] sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-1.5">
-              <div className="w-7 h-7 bg-[#FF4B00] rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-xs">TM</span>
+      <div style={{ borderBottom: '1px solid var(--border-dim)', background: 'var(--bg-1)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+              <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg,#FF4B00,#cc3c00)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: 'white', fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 11 }}>TM</span>
               </div>
-              <span className="font-black text-sm hidden sm:block">TrackMate</span>
             </Link>
-            <span className="text-zinc-700">·</span>
-            <span className="text-sm font-semibold text-white truncate max-w-[180px] sm:max-w-none">
-              {meet?.name}
-            </span>
+            <span style={{ color: 'var(--border)', fontSize: 16 }}>·</span>
+            <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 16, color: 'white' }}>{meet?.name}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? 'text-green-400' : 'text-zinc-500'}`}>
-              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400 live-dot' : 'bg-zinc-600'}`} />
-              {connected ? 'LIVE' : 'Connecting...'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="live-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: connected ? '#4ade80' : '#6b6b80', display: 'inline-block' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: connected ? '#4ade80' : 'var(--text-muted)' }}>{connected ? 'LIVE' : 'CONNECTING'}</span>
             </div>
-            {lastUpdate && (
-              <span className="text-xs text-zinc-600 hidden sm:block">
-                Updated {lastUpdate.toLocaleTimeString()}
-              </span>
-            )}
-            <Link href={`/meets/${meetId}/scoreboard`}
-              className="text-xs px-3 py-1.5 bg-[#1a1a1a] border border-[#2A2A2A] text-zinc-400 hover:text-white rounded-lg transition-colors">
-              Scoreboard →
-            </Link>
+            {lastUpdate && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{lastUpdate.toLocaleTimeString()}</span>}
+            <Link href={`/meets/${meetId}/scoreboard`} className="btn btn-ghost btn-sm">Scoreboard →</Link>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-          {/* Team Scores sidebar */}
-          <div className="lg:col-span-1">
-            <div className="rounded-xl border border-[#2A2A2A] bg-[#111111] overflow-hidden sticky top-20">
-              <div className="px-4 py-3 border-b border-[#1a1a1a] flex items-center gap-2">
-                <span className="text-sm font-bold text-white">Team Scores</span>
-              </div>
-              {teamScores.length === 0 ? (
-                <div className="p-4 text-center text-zinc-600 text-xs">No scored events yet</div>
-              ) : (
-                <div className="divide-y divide-[#0D0D0D]">
-                  {teamScores.map((t, i) => (
-                    <div key={t.name} className={`flex items-center justify-between px-4 py-2.5 ${i === 0 ? 'bg-[#FF4B00]/5' : ''}`}>
-                      <div className="flex items-center gap-2.5">
-                        <span className={`text-xs font-bold w-5 text-center ${i === 0 ? 'text-[#FF4B00]' : i === 1 ? 'text-zinc-400' : i === 2 ? 'text-amber-600' : 'text-zinc-600'}`}>
-                          {i + 1}
-                        </span>
-                        <span className="text-sm text-white truncate max-w-[120px]">{t.name}</span>
-                      </div>
-                      <span className={`text-sm font-black ${i === 0 ? 'text-[#FF4B00]' : 'text-white'}`}>
-                        {t.points}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px', display: 'grid', gridTemplateColumns: '240px 1fr', gap: 20 }}>
+        {/* Team scores */}
+        <div>
+          <div className="card" style={{ overflow: 'hidden', position: 'sticky', top: 76 }}>
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-dim)' }}>
+              <h3 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 14, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Team Scores</h3>
             </div>
+            {teamScores.length === 0 ? (
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>Waiting for results...</div>
+            ) : (
+              <div>
+                {teamScores.map((t, i) => (
+                  <div key={t.name} style={{ display: 'flex', alignItems: 'center', padding: '12px 18px', borderBottom: '1px solid var(--border-dim)', background: i === 0 ? 'rgba(255,75,0,0.04)' : 'transparent' }}>
+                    <span className="stat-number" style={{ fontSize: 18, width: 28, color: i === 0 ? '#FF4B00' : i === 1 ? '#a0a0b0' : i === 2 ? '#b87333' : 'var(--text-muted)' }}>{i + 1}</span>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                    <span className="stat-number" style={{ fontSize: 22, color: i === 0 ? '#FF4B00' : 'white' }}>{t.points}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Results */}
+        <div>
+          {/* Event filter */}
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+            <button onClick={() => setSelectedEvent('all')} className="btn btn-sm" style={{ background: selectedEvent === 'all' ? '#FF4B00' : 'var(--bg-3)', color: 'white', border: 'none', flexShrink: 0 }}>All</button>
+            {events.map(ev => (
+              <button key={ev.id} onClick={() => setSelectedEvent(ev.id)} className="btn btn-sm" style={{ background: selectedEvent === ev.id ? '#FF4B00' : 'var(--bg-3)', color: 'white', border: 'none', flexShrink: 0 }}>{ev.name}</button>
+            ))}
           </div>
 
-          {/* Results main */}
-          <div className="lg:col-span-3 space-y-4">
-            {/* Event filter */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              <button onClick={() => setSelectedEvent('all')}
-                className={`flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${selectedEvent === 'all' ? 'bg-[#FF4B00] text-white' : 'bg-[#1a1a1a] text-zinc-400 hover:text-white'}`}>
-                All Events
-              </button>
-              {events.map(ev => (
-                <button key={ev.id} onClick={() => setSelectedEvent(ev.id)}
-                  className={`flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap ${selectedEvent === ev.id ? 'bg-[#FF4B00] text-white' : 'bg-[#1a1a1a] text-zinc-400 hover:text-white'}`}>
-                  {ev.name}
-                </button>
-              ))}
+          {Object.keys(grouped).length === 0 ? (
+            <div className="card" style={{ padding: '80px 40px', textAlign: 'center' }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>📡</div>
+              <h3 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 24, marginBottom: 8 }}>Waiting for Results</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Results will appear here in real time</p>
             </div>
-
-            {Object.keys(groupedByEvent).length === 0 ? (
-              <div className="rounded-xl border border-[#2A2A2A] bg-[#111111] p-16 text-center">
-                <div className="text-5xl mb-4">📡</div>
-                <h3 className="text-lg font-semibold text-white mb-1">Waiting for results</h3>
-                <p className="text-sm text-zinc-500">Results will appear here in real time as they're entered</p>
-              </div>
-            ) : (
-              Object.entries(groupedByEvent).map(([eventName, evResults]) => (
-                <div key={eventName} className="rounded-xl border border-[#2A2A2A] bg-[#111111] overflow-hidden">
-                  <div className="flex items-center justify-between px-5 py-3 bg-[#0D0D0D] border-b border-[#1a1a1a]">
-                    <h3 className="font-bold text-white text-sm">{eventName}</h3>
-                    <span className="text-xs text-zinc-500">{evResults.length} results</span>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {Object.entries(grouped).map(([eventName, evResults]) => (
+                <div key={eventName} className="card" style={{ overflow: 'hidden' }}>
+                  <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--border-dim)', background: 'var(--bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 16, letterSpacing: '0.02em' }}>{eventName}</h3>
+                    <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{evResults.length} results</span>
                   </div>
-                  <table className="w-full">
+                  <table className="results-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr className="border-b border-[#0D0D0D]">
-                        {['Pl','Athlete','Team','Time','Wind'].map(h => (
-                          <th key={h} className="text-left px-4 py-2 text-xs font-semibold text-zinc-600 uppercase">{h}</th>
+                      <tr style={{ borderBottom: '1px solid var(--border-dim)' }}>
+                        {['Pl', 'Athlete', 'Team', 'Time', 'Wind'].map(h => (
+                          <th key={h} style={{ padding: '8px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {evResults
-                        .sort((a, b) => (a.place || 99) - (b.place || 99))
-                        .map(r => {
-                          const windOver = r.wind !== null && r.wind !== undefined && r.wind > (meet?.rulesets?.wind_limit || 2.0)
-                          return (
-                            <tr key={r.id} className={`border-b border-[#0A0A0A] transition-colors hover:bg-[#0D0D0D] ${r.dq ? 'opacity-40' : ''}`}>
-                              <td className="px-4 py-2.5">
-                                <span className={`text-sm font-black ${r.place === 1 ? 'text-[#FF4B00]' : r.place === 2 ? 'text-zinc-400' : r.place === 3 ? 'text-amber-600' : 'text-zinc-500'}`}>
-                                  {r.dq ? 'DQ' : r.dns ? 'DNS' : r.place || '—'}
-                                </span>
-                              </td>
-                              <td className="px-4 py-2.5 text-sm font-medium text-white">
-                                {r.entries?.athletes?.name}
-                              </td>
-                              <td className="px-4 py-2.5 text-sm text-zinc-400">
-                                {r.entries?.teams?.name}
-                              </td>
-                              <td className="px-4 py-2.5 text-sm font-mono font-semibold text-white">
-                                {r.fat_time ? formatTime(r.fat_time) : '—'}
-                              </td>
-                              <td className="px-4 py-2.5">
-                                {r.wind !== null && r.wind !== undefined ? (
-                                  <span className={`text-xs font-mono ${windOver ? 'text-yellow-400' : 'text-zinc-500'}`}>
-                                    {r.wind > 0 ? '+' : ''}{r.wind?.toFixed(1)}
-                                    {windOver && ' ⚠'}
-                                  </span>
-                                ) : <span className="text-zinc-700">—</span>}
-                              </td>
-                            </tr>
-                          )
-                        })}
+                      {evResults.sort((a: any, b: any) => (a.place || 99) - (b.place || 99)).map((r: any) => {
+                        const windOver = r.wind !== null && r.wind !== undefined && r.wind > (meet?.rulesets?.wind_limit || 2.0)
+                        return (
+                          <tr key={r.id} style={{ borderBottom: '1px solid var(--border-dim)', opacity: r.dq ? 0.4 : 1 }}>
+                            <td style={{ padding: '12px 16px', fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 18 }}>
+                              {r.dq ? 'DQ' : r.dns ? 'DNS' : r.place || '—'}
+                            </td>
+                            <td style={{ padding: '12px 16px', fontWeight: 600, fontSize: 14, color: 'white' }}>{r.entries?.athletes?.name}</td>
+                            <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-muted)' }}>{r.entries?.teams?.name}</td>
+                            <td style={{ padding: '12px 16px', fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 16 }}>{r.fat_time ? formatTime(r.fat_time) : '—'}</td>
+                            <td style={{ padding: '12px 16px' }}>
+                              {r.wind != null ? <span style={{ fontSize: 12, fontFamily: 'monospace', color: windOver ? '#fbbf24' : 'var(--text-muted)' }}>{r.wind > 0 ? '+' : ''}{r.wind?.toFixed(1)}{windOver ? ' ⚠' : ''}</span> : <span style={{ color: 'var(--text-subtle)' }}>—</span>}
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

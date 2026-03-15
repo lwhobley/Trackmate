@@ -9,79 +9,70 @@ export default function SignUpPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', orgName: '', orgType: 'school' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     const supabase = createClient()
-
-    // Sign up
     const { data: authData, error: authErr } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { name: form.name } }
+      email: form.email, password: form.password, options: { data: { name: form.name } }
     })
     if (authErr || !authData.user) { setError(authErr?.message || 'Signup failed'); setLoading(false); return }
-
-    // Create org
-    const { data: org, error: orgErr } = await supabase.from('orgs').insert({
-      name: form.orgName,
-      type: form.orgType,
-    }).select().single()
+    const { data: org, error: orgErr } = await supabase.from('orgs').insert({ name: form.orgName, type: form.orgType }).select().single()
     if (orgErr) { setError(orgErr.message); setLoading(false); return }
-
-    // Update profile with org
     await supabase.from('profiles').update({ org_id: org.id, name: form.name }).eq('id', authData.user.id)
-
-    router.push('/dashboard/orgs')
-    router.refresh()
+    router.push('/dashboard/orgs'); router.refresh()
   }
 
-  const update = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
-
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-[#FF4B00] rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-black text-lg">TM</span>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 400, background: 'radial-gradient(ellipse, rgba(255,75,0,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+      <div style={{ width: '100%', maxWidth: 420 }}>
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#FF4B00,#cc3c00)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 4px 24px rgba(255,75,0,0.35)' }}>
+            <span style={{ color: 'white', fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 18 }}>TM</span>
           </div>
-          <h1 className="text-2xl font-black text-white">Create your account</h1>
-          <p className="text-zinc-500 text-sm mt-1">Get started with TrackMate for free</p>
+          <h1 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 32, letterSpacing: '-0.01em' }}>CREATE ACCOUNT</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>Get started with TrackMate for free</p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4 bg-[#111111] border border-[#2A2A2A] rounded-2xl p-6">
-          {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg p-3">{error}</div>}
-          {[
-            { label: 'Your Name', key: 'name', type: 'text', placeholder: 'Coach Smith' },
-            { label: 'Email', key: 'email', type: 'email', placeholder: 'you@school.edu' },
-            { label: 'Password', key: 'password', type: 'password', placeholder: '••••••••' },
-            { label: 'School / Club / Program Name', key: 'orgName', type: 'text', placeholder: 'Jefferson High School' },
-          ].map(f => (
-            <div key={f.key}>
-              <label className="text-sm font-medium text-zinc-300 block mb-1.5">{f.label}</label>
-              <input type={f.type} value={form[f.key as keyof typeof form]} onChange={e => update(f.key, e.target.value)} required
-                className="w-full h-10 rounded-lg border border-[#2A2A2A] bg-[#0D0D0D] px-3 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-[#FF4B00]"
-                placeholder={f.placeholder} />
+
+        <div className="card" style={{ padding: 28 }}>
+          {error && (
+            <div style={{ marginBottom: 20, padding: '12px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', fontSize: 13 }}>
+              {error}
             </div>
-          ))}
-          <div>
-            <label className="text-sm font-medium text-zinc-300 block mb-1.5">Organization Type</label>
-            <select value={form.orgType} onChange={e => update('orgType', e.target.value)}
-              className="w-full h-10 rounded-lg border border-[#2A2A2A] bg-[#0D0D0D] px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF4B00]">
-              <option value="school">High School</option>
-              <option value="college">College / University</option>
-              <option value="club">Club / AAU</option>
-              <option value="elite">Elite / Open</option>
-            </select>
-          </div>
-          <button type="submit" disabled={loading}
-            className="w-full h-10 bg-[#FF4B00] hover:bg-[#e04200] disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
-            {loading ? <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Creating account...</> : 'Create Account'}
-          </button>
-        </form>
-        <p className="text-center text-sm text-zinc-500 mt-4">
-          Already have an account? <Link href="/auth/signin" className="text-[#FF4B00] hover:underline">Sign in</Link>
+          )}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {[
+              { label: 'Your Name', key: 'name', type: 'text', placeholder: 'Coach Smith' },
+              { label: 'Email', key: 'email', type: 'email', placeholder: 'you@school.edu' },
+              { label: 'Password', key: 'password', type: 'password', placeholder: '••••••••' },
+              { label: 'School / Club / Program', key: 'orgName', type: 'text', placeholder: 'Jefferson High School' },
+            ].map(f => (
+              <div key={f.key}>
+                <label className="label">{f.label}</label>
+                <input type={f.type} value={form[f.key as keyof typeof form]} onChange={e => update(f.key, e.target.value)} required className="input" placeholder={f.placeholder} />
+              </div>
+            ))}
+            <div>
+              <label className="label">Organization Type</label>
+              <select value={form.orgType} onChange={e => update('orgType', e.target.value)} className="input" style={{ height: 42 }}>
+                <option value="school">High School</option>
+                <option value="college">College / University</option>
+                <option value="club">Club / AAU</option>
+                <option value="elite">Elite / Open</option>
+              </select>
+            </div>
+            <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', marginTop: 4, height: 44 }}>
+              {loading ? 'Creating account...' : 'Create Account →'}
+            </button>
+          </form>
+        </div>
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 20 }}>
+          Already have an account?{' '}
+          <Link href="/auth/signin" style={{ color: '#FF4B00', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
         </p>
       </div>
     </div>

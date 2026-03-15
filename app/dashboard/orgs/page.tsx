@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { MEET_TYPE_LABELS } from '@/lib/types'
 
 export default async function OrgsPage() {
   const supabase = await createClient()
@@ -10,88 +11,93 @@ export default async function OrgsPage() {
   const { data: profile } = await supabase.from('profiles').select('*, orgs(*)').eq('id', user.id).single()
   const org = (profile?.orgs as any)
 
-  // Get meets for this org
-  const { data: meets } = await supabase.from('meets')
-    .select('*, rulesets(*)')
-    .eq('org_id', org?.id || '')
-    .order('date', { ascending: false })
-    .limit(10)
+  const { data: meets } = await supabase.from('meets').select('*, rulesets(*)')
+    .eq('org_id', org?.id || '').order('date', { ascending: false }).limit(20)
 
-  const typeColors: Record<string, string> = {
-    hs: 'bg-blue-600/20 text-blue-400 border-blue-600/30',
-    ncaa: 'bg-purple-600/20 text-purple-400 border-purple-600/30',
-    club: 'bg-orange-600/20 text-orange-400 border-orange-600/30',
-    elite: 'bg-yellow-600/20 text-yellow-300 border-yellow-600/30',
-  }
-  const typeLabels: Record<string, string> = { hs: 'HS/NFHS', ncaa: 'NCAA', club: 'Club/AAU', elite: 'Elite' }
+  const typeClass: Record<string, string> = { hs: 'badge-hs', ncaa: 'badge-ncaa', club: 'badge-club', elite: 'badge-elite' }
+  const upcoming = meets?.filter(m => new Date(m.date) >= new Date()) || []
+  const past = meets?.filter(m => new Date(m.date) < new Date()) || []
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+    <div style={{ padding: '40px 48px', maxWidth: 1100 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40 }}>
         <div>
-          <h1 className="text-2xl font-black text-white">{org?.name || 'Your Organization'}</h1>
-          <p className="text-zinc-500 text-sm mt-1">Manage your meets and athletes</p>
+          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>
+            {org?.type?.toUpperCase() || 'ORGANIZATION'}
+          </p>
+          <h1 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 40, letterSpacing: '-0.01em', lineHeight: 1 }}>
+            {org?.name || 'Welcome to TrackMate'}
+          </h1>
         </div>
         {org && (
-          <Link href={`/dashboard/orgs/${org.id}/meets/new`}
-            className="bg-[#FF4B00] hover:bg-[#e04200] text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
+          <Link href={`/dashboard/orgs/${org.id}/meets/new`} className="btn btn-primary">
             + New Meet
           </Link>
         )}
       </div>
 
       {!org ? (
-        <div className="rounded-2xl border border-[#2A2A2A] bg-[#111111] p-12 text-center">
-          <div className="text-5xl mb-4">🏟️</div>
-          <h3 className="text-lg font-semibold text-white mb-2">No organization yet</h3>
-          <p className="text-zinc-500 text-sm">Complete your profile to create meets</p>
+        <div className="card" style={{ padding: '80px 40px', textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🏟️</div>
+          <h3 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 24, marginBottom: 8 }}>No organization linked</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Complete your profile setup to create and manage meets.</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          {/* Stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 40 }}>
             {[
-              { label: 'Total Meets', value: meets?.length || 0, icon: '📋' },
-              { label: 'Upcoming', value: meets?.filter(m => new Date(m.date) >= new Date()).length || 0, icon: '📅' },
-              { label: 'Org Type', value: org.type?.toUpperCase(), icon: '🏫' },
-            ].map(stat => (
-              <div key={stat.label} className="rounded-xl border border-[#2A2A2A] bg-[#111111] p-5">
-                <div className="text-2xl mb-2">{stat.icon}</div>
-                <div className="text-2xl font-black text-white">{stat.value}</div>
-                <div className="text-xs text-zinc-500 mt-0.5">{stat.label}</div>
+              { label: 'Total Meets', value: meets?.length || 0, sub: 'all time' },
+              { label: 'Upcoming', value: upcoming.length, sub: 'scheduled' },
+              { label: 'Past Meets', value: past.length, sub: 'completed' },
+              { label: 'Org Type', value: org.type?.charAt(0).toUpperCase() + org.type?.slice(1), sub: 'classification' },
+            ].map(s => (
+              <div key={s.label} className="card" style={{ padding: '20px 24px' }}>
+                <div className="stat-number" style={{ fontSize: 36, color: 'white', lineHeight: 1 }}>{s.value}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#FF4B00', marginTop: 4 }}>{s.label}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{s.sub}</div>
               </div>
             ))}
           </div>
 
-          <div className="rounded-xl border border-[#2A2A2A] bg-[#111111] overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a]">
-              <h2 className="font-bold text-white">Recent Meets</h2>
-              <Link href={`/dashboard/orgs/${org.id}/meets/new`}
-                className="text-xs text-[#FF4B00] hover:underline">+ Create meet</Link>
+          {/* Meets table */}
+          <div className="card" style={{ overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--border-dim)' }}>
+              <h2 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 18, letterSpacing: '0.02em' }}>MEETS</h2>
+              <Link href={`/dashboard/orgs/${org.id}/meets/new`} style={{ fontSize: 12, color: '#FF4B00', textDecoration: 'none', fontWeight: 700 }}>+ Create meet</Link>
             </div>
             {!meets?.length ? (
-              <div className="p-12 text-center text-zinc-500">
-                <p className="text-4xl mb-3">🏁</p>
-                <p className="font-medium">No meets yet</p>
-                <p className="text-sm mt-1">Create your first meet to get started</p>
+              <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🏁</div>
+                <p style={{ fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 18, marginBottom: 6 }}>No meets yet</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 20 }}>Create your first meet to get started</p>
+                <Link href={`/dashboard/orgs/${org.id}/meets/new`} className="btn btn-primary btn-sm">Create Meet</Link>
               </div>
             ) : (
-              <div className="divide-y divide-[#1a1a1a]">
-                {meets.map(meet => (
-                  <div key={meet.id} className="flex items-center justify-between px-6 py-4 hover:bg-[#0D0D0D] transition-colors">
-                    <div className="flex items-center gap-4">
+              <div>
+                {meets.map((meet, i) => (
+                  <div key={meet.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: i < meets.length - 1 ? '1px solid var(--border-dim)' : 'none', transition: 'background 0.1s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-3)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ fontSize: 18 }}>{meet.meet_type === 'hs' ? '🏫' : meet.meet_type === 'ncaa' ? '🎓' : meet.meet_type === 'elite' ? '🏅' : '🏃'}</span>
+                      </div>
                       <div>
-                        <p className="font-semibold text-white">{meet.name}</p>
-                        <p className="text-sm text-zinc-500">{new Date(meet.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {meet.venue || 'TBD'}</p>
+                        <p style={{ fontWeight: 600, color: 'white', fontSize: 14 }}>{meet.name}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                          {new Date(meet.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {meet.venue && ` · ${meet.venue}`}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${typeColors[meet.meet_type] || ''}`}>
-                        {typeLabels[meet.meet_type] || meet.meet_type}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className={`badge ${typeClass[meet.meet_type]}`}>
+                        {MEET_TYPE_LABELS[meet.meet_type as keyof typeof MEET_TYPE_LABELS]}
                       </span>
-                      <div className="flex gap-2">
-                        <Link href={`/meets/${meet.id}`} className="text-xs px-3 py-1.5 rounded-lg border border-[#2A2A2A] text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors">View</Link>
-                        <Link href={`/meets/${meet.id}/manage`} className="text-xs px-3 py-1.5 rounded-lg bg-[#1a1a1a] text-zinc-400 hover:text-white transition-colors">Manage</Link>
-                      </div>
+                      <Link href={`/meets/${meet.id}`} className="btn btn-ghost btn-sm">View</Link>
+                      <Link href={`/meets/${meet.id}/manage`} className="btn btn-secondary btn-sm">Manage</Link>
                     </div>
                   </div>
                 ))}

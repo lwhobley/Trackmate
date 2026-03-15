@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { signOut } from '@/lib/actions/auth'
 import { Profile, Org } from '@/lib/types'
 
-// Issue #6 fix: typed profile with proper Org type instead of `as any`
 type ProfileWithOrg = Profile & { orgs: Org | null }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -12,56 +11,64 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/signin')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, orgs(*)')
-    .eq('id', user.id)
-    .single<ProfileWithOrg>()
+  const { data: profile } = await supabase.from('profiles').select('*, orgs(*)').eq('id', user.id).single<ProfileWithOrg>()
+
+  const navItems = [
+    { href: '/dashboard/orgs', label: 'My Meets', icon: '🏟️' },
+    { href: '/dashboard/meets', label: 'Browse Meets', icon: '📋' },
+  ]
 
   return (
-    <div className="min-h-screen bg-[#080808] flex">
+    <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg)' }}>
       {/* Sidebar */}
-      <aside className="w-60 border-r border-[#1a1a1a] bg-[#0D0D0D] flex flex-col fixed h-full">
-        <div className="p-4 border-b border-[#1a1a1a]">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#FF4B00] rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-sm">TM</span>
+      <aside style={{ width: 220, borderRight: '1px solid var(--border-dim)', background: 'var(--bg-1)', display: 'flex', flexDirection: 'column', position: 'fixed', height: '100%', zIndex: 40 }}>
+        {/* Logo */}
+        <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border-dim)' }}>
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
+            <div style={{ width: 30, height: 30, background: 'linear-gradient(135deg,#FF4B00,#cc3c00)', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(255,75,0,0.35)', flexShrink: 0 }}>
+              <span style={{ color: 'white', fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 12 }}>TM</span>
             </div>
-            <span className="font-black text-lg tracking-tight">TrackMate</span>
+            <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 18, letterSpacing: '0.01em', color: 'white' }}>TRACKMATE</span>
           </Link>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
-          {[
-            { href: '/dashboard/orgs', label: 'Organizations', icon: '🏫' },
-            { href: '/dashboard/meets', label: 'All Meets', icon: '📋' },
-          ].map(item => (
-            <Link key={item.href} href={item.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-[#1a1a1a] transition-colors">
-              <span>{item.icon}</span>
+
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: '12px 10px' }}>
+          {navItems.map(item => (
+            <Link key={item.href} href={item.href} className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, textDecoration: 'none', color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, marginBottom: 2, transition: 'all 0.15s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg-3)'; (e.currentTarget as HTMLElement).style.color = 'white'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)'; }}>
+              <span style={{ fontSize: 16 }}>{item.icon}</span>
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="p-3 border-t border-[#1a1a1a]">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-7 h-7 rounded-full bg-[#FF4B00]/20 border border-[#FF4B00]/30 flex items-center justify-center text-xs text-[#FF4B00] font-bold">
-              {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              {/* Issue #6 fix: typed access, no `as any` */}
-              <p className="text-xs font-medium text-white truncate">{profile?.name || 'User'}</p>
-              <p className="text-xs text-zinc-500 truncate">{profile?.orgs?.name || 'No org'}</p>
+
+        {/* User */}
+        <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border-dim)' }}>
+          <div style={{ padding: '10px 12px', marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,75,0,0.15)', border: '1px solid rgba(255,75,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 12, color: '#FF4B00' }}>
+                  {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile?.name || 'User'}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile?.orgs?.name || 'No org'}</p>
+              </div>
             </div>
           </div>
-          {/* Issue #12 fix: imported server action instead of inline */}
           <form action={signOut}>
-            <button type="submit" className="w-full text-left px-3 py-2 text-xs text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-[#1a1a1a]">
+            <button type="submit" style={{ width: '100%', textAlign: 'left', padding: '8px 12px', fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, fontFamily: 'Barlow', fontWeight: 600 }}>
               Sign out →
             </button>
           </form>
         </div>
       </aside>
-      <main className="flex-1 ml-60 min-h-screen">
+
+      {/* Main content */}
+      <main style={{ flex: 1, marginLeft: 220, minHeight: '100vh' }}>
         {children}
       </main>
     </div>

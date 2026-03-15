@@ -4,90 +4,112 @@ import { createClient } from '@/lib/supabase/server'
 export default async function LandingPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
-  // Issue #5 fix: look up a real public meet for the demo link rather than
-  // hardcoding a UUID that may not exist in production.
-  const { data: demoMeet } = await supabase
-    .from('meets')
-    .select('id')
-    .eq('public', true)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .single()
-
-  const demoHref = demoMeet
-    ? `/meets/${demoMeet.id}/live`
-    : '/dashboard/meets'
+  const { data: demoMeet } = await supabase.from('meets').select('id').eq('public', true).order('created_at', { ascending: true }).limit(1).single()
+  const demoHref = demoMeet ? `/meets/${demoMeet.id}/live` : '/dashboard/meets'
 
   return (
-    <div className="min-h-screen bg-[#080808] flex flex-col">
+    <div className="min-h-screen track-bg noise" style={{ background: 'var(--bg)' }}>
       {/* Nav */}
-      <nav className="border-b border-[#1a1a1a] px-6 py-4 flex items-center justify-between max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#FF4B00] rounded-lg flex items-center justify-center">
-            <span className="text-white font-black text-sm">TM</span>
+      <nav style={{ borderBottom: '1px solid var(--border-dim)', background: 'rgba(6,6,8,0.9)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 32, height: 32, background: 'linear-gradient(135deg,#FF4B00,#cc3c00)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px rgba(255,75,0,0.4)' }}>
+              <span style={{ color: 'white', fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 14, letterSpacing: '-0.02em' }}>TM</span>
+            </div>
+            <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em', color: 'white' }}>TRACKMATE</span>
           </div>
-          <span className="font-black text-xl tracking-tight">TrackMate</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {user ? (
-            <Link href="/dashboard/orgs" className="bg-[#FF4B00] hover:bg-[#e04200] text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link href="/auth/signin" className="text-zinc-400 hover:text-white text-sm transition-colors">Sign In</Link>
-              <Link href="/auth/signup" className="bg-[#FF4B00] hover:bg-[#e04200] text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors">
-                Get Started
-              </Link>
-            </>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {user ? (
+              <Link href="/dashboard/orgs" className="btn btn-primary btn-sm">Dashboard →</Link>
+            ) : (
+              <>
+                <Link href="/auth/signin" style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Sign In</Link>
+                <Link href="/auth/signup" className="btn btn-primary btn-sm">Get Started</Link>
+              </>
+            )}
+          </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-24 text-center max-w-5xl mx-auto w-full">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF4B00]/10 border border-[#FF4B00]/20 text-[#FF4B00] text-xs font-semibold mb-8 uppercase tracking-wider">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FF4B00] live-dot" />
-          HS · NCAA · Club · Elite
+      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 24px 80px', textAlign: 'center' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', borderRadius: 99, background: 'rgba(255,75,0,0.08)', border: '1px solid rgba(255,75,0,0.2)', marginBottom: 32 }}>
+          <span className="live-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF4B00', display: 'inline-block' }} />
+          <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', color: '#FF4B00' }}>HS · NCAA · CLUB · ELITE</span>
         </div>
-        <h1 className="text-6xl md:text-7xl font-black tracking-tight leading-none mb-6">
-          Track &amp; Field<br />
-          <span className="gradient-text">Meet Management</span><br />
-          Done Right.
+
+        <h1 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 'clamp(56px, 10vw, 96px)', lineHeight: 0.92, letterSpacing: '-0.02em', marginBottom: 28 }}>
+          <span className="gradient-text-white">TRACK &amp; FIELD</span><br />
+          <span className="gradient-text">MEET MANAGEMENT</span><br />
+          <span className="gradient-text-white">DONE RIGHT.</span>
         </h1>
-        <p className="text-xl text-zinc-400 max-w-2xl mb-10">
-          From entry registration to live results — TrackMate handles HS/NFHS, NCAA/TFRRS, club/AAU, and elite meets with FinishLynx integration, real-time scoreboards, and automated exports.
+
+        <p style={{ fontSize: 18, color: 'var(--text-muted)', maxWidth: 560, margin: '0 auto 40px', lineHeight: 1.6 }}>
+          From entry registration to live results. FinishLynx FAT bridge, real-time scoreboards, Stripe payments, and TFRRS/Hy-Tek exports.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <Link href="/auth/signup" className="bg-[#FF4B00] hover:bg-[#e04200] text-white font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg shadow-orange-500/20">
+
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link href="/auth/signup" className="btn btn-primary btn-lg">
             Start Free →
           </Link>
-          <Link href={demoHref} className="border border-[#2A2A2A] hover:border-[#FF4B00]/50 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors">
+          <Link href={demoHref} className="btn btn-ghost btn-lg">
             View Live Demo
           </Link>
         </div>
 
-        {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-20 w-full text-left">
+        {/* Stats bar */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, maxWidth: 720, margin: '72px auto 0', background: 'var(--border)', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
           {[
-            { icon: '⚡', title: 'FAT Bridge', desc: 'Watches your FinishLynx Results folder and syncs times instantly via LIF/CSV parsing.' },
-            { icon: '📡', title: 'Live Results', desc: 'Supabase Realtime pushes results to scoreboards and coaches the moment they come in.' },
-            { icon: '🏫', title: 'Multi-Ruleset', desc: 'NFHS wind rules, NCAA FAT requirements, AAU scoring — all auto-applied per meet type.' },
-            { icon: '🎟️', title: 'Entry Management', desc: 'Team and athlete registration with seed times, event selection, and instant confirmation.' },
-            { icon: '📄', title: 'Hy-Tek & TFRRS', desc: 'One-click export to Hy-Tek CSV, TFRRS XML, and state HS submission formats.' },
-            { icon: '📱', title: 'PWA + Mobile', desc: 'Install on any device. Coaches check in athletes, officials update results on the track.' },
-          ].map(f => (
-            <div key={f.title} className="p-6 rounded-xl border border-[#1a1a1a] bg-[#0D0D0D] hover:border-[#2A2A2A] transition-colors">
-              <div className="text-3xl mb-3">{f.icon}</div>
-              <h3 className="font-bold text-white mb-1">{f.title}</h3>
-              <p className="text-sm text-zinc-500">{f.desc}</p>
+            { value: '4', label: 'Meet Types' },
+            { value: '30+', label: 'Track Events' },
+            { value: 'FAT', label: 'Bridge Ready' },
+            { value: 'Live', label: 'Realtime' },
+          ].map(s => (
+            <div key={s.label} style={{ background: 'var(--bg-2)', padding: '24px 16px', textAlign: 'center' }}>
+              <div className="stat-number gradient-text" style={{ fontSize: 32 }}>{s.value}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 4 }}>{s.label}</div>
             </div>
           ))}
         </div>
-      </main>
+      </section>
 
-      <footer className="border-t border-[#1a1a1a] py-8 text-center text-zinc-600 text-sm">
+      {/* Features */}
+      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 100px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <h2 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 42, letterSpacing: '-0.01em' }}>
+            EVERYTHING YOUR MEET NEEDS
+          </h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+          {[
+            { icon: '⚡', label: 'FAT BRIDGE', title: 'FinishLynx Integration', desc: 'Watches your Results folder, parses LIF/CSV files, and syncs times to the live scoreboard instantly.' },
+            { icon: '📡', label: 'REALTIME', title: 'Live Results', desc: 'Supabase Realtime pushes every result to coaches and spectators the moment it\'s entered.' },
+            { icon: '🏆', label: 'MULTI-RULESET', title: 'HS / NCAA / Club / Elite', desc: 'NFHS wind rules, NCAA FAT requirements, AAU scoring — auto-applied per meet type.' },
+            { icon: '🎟️', label: 'PAYMENTS', title: 'Stripe Checkout', desc: 'Per-athlete and per-team entry fees with automatic entry confirmation on payment.' },
+            { icon: '📄', label: 'EXPORTS', title: 'Hy-Tek & TFRRS', desc: 'One-click export to Hy-Tek CSV, TFRRS XML, LIF start lists, and state HS formats.' },
+            { icon: '📱', label: 'PWA', title: 'Works on Any Device', desc: 'Install on iPad at the track. Coaches enter athletes, officials record results.' },
+          ].map(f => (
+            <div key={f.title} className="card card-hover" style={{ padding: '28px 28px 32px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #FF4B00, transparent)' }} />
+              <div style={{ fontSize: 28, marginBottom: 16 }}>{f.icon}</div>
+              <div className="badge badge-hs" style={{ marginBottom: 10, fontSize: 10 }}>{f.label}</div>
+              <h3 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 20, marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={{ borderTop: '1px solid var(--border-dim)', padding: '80px 24px', textAlign: 'center', background: 'var(--bg-1)' }}>
+        <h2 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 48, marginBottom: 16 }}>
+          READY TO RUN?
+        </h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>Set up your first meet in under 5 minutes.</p>
+        <Link href="/auth/signup" className="btn btn-primary btn-lg">Create Free Account →</Link>
+      </section>
+
+      <footer style={{ borderTop: '1px solid var(--border-dim)', padding: '24px', textAlign: 'center', color: 'var(--text-subtle)', fontSize: 13 }}>
         © {new Date().getFullYear()} TrackMate · Built for the sport
       </footer>
     </div>
