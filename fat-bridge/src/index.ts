@@ -6,7 +6,7 @@
  *   npx trackmeet-bridge --url https://your-project.supabase.co --meet MEET_ID --key SERVICE_KEY --dir /path/to/Results
  * 
  * Or via env vars:
- *   BRIDGE_SUPABASE_URL=... BRIDGE_SUPABASE_SERVICE_KEY=... npx trackmeet-bridge --meet MEET_ID
+ *   BRIDGE_SUPABASE_URL=... FAT_BRIDGE_SECRET=... npx trackmeet-bridge --meet MEET_ID
  */
 
 import * as fs from 'fs'
@@ -29,7 +29,7 @@ function parseArgs(argv: string[]): Record<string, string> {
 const args = parseArgs(process.argv)
 
 const SUPABASE_URL = args.url || process.env.BRIDGE_SUPABASE_URL || ''
-const SERVICE_KEY = args.key || process.env.BRIDGE_SUPABASE_SERVICE_KEY || ''
+const SERVICE_KEY = args.key || process.env.FAT_BRIDGE_SECRET || process.env.BRIDGE_FAT_SECRET || ''
 const MEET_ID = args.meet || process.env.BRIDGE_MEET_ID || ''
 const WATCH_DIR = args.dir || process.env.BRIDGE_WATCH_DIR || './Results'
 const API_URL = args['api-url'] || `${SUPABASE_URL.replace('.supabase.co', '')}/functions/v1` || ''
@@ -51,7 +51,7 @@ if (!SUPABASE_URL || !SERVICE_KEY || !MEET_ID) {
   console.log('Usage:')
   console.log('  trackmeet-bridge --url SUPABASE_URL --key SERVICE_KEY --meet MEET_ID [--dir /path/to/Results]')
   console.log('')
-  console.log('Or set env vars: BRIDGE_SUPABASE_URL, BRIDGE_SUPABASE_SERVICE_KEY, BRIDGE_MEET_ID')
+  console.log('Or set env vars: BRIDGE_SUPABASE_URL, FAT_BRIDGE_SECRET, BRIDGE_MEET_ID')
   process.exit(1)
 }
 

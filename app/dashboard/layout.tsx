@@ -1,20 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { signOut } from '@/lib/actions/auth'
+import { Profile, Org } from '@/lib/types'
+
+// Issue #6 fix: typed profile with proper Org type instead of `as any`
+type ProfileWithOrg = Profile & { orgs: Org | null }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/signin')
 
-  const { data: profile } = await supabase.from('profiles').select('*, orgs(*)').eq('id', user.id).single()
-
-  async function signOut() {
-    'use server'
-    const supabase = await createClient()
-    await supabase.auth.signOut()
-    redirect('/auth/signin')
-  }
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*, orgs(*)')
+    .eq('id', user.id)
+    .single<ProfileWithOrg>()
 
   return (
     <div className="min-h-screen bg-[#080808] flex">
@@ -46,10 +48,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
+              {/* Issue #6 fix: typed access, no `as any` */}
               <p className="text-xs font-medium text-white truncate">{profile?.name || 'User'}</p>
-              <p className="text-xs text-zinc-500 truncate">{(profile?.orgs as any)?.name || 'No org'}</p>
+              <p className="text-xs text-zinc-500 truncate">{profile?.orgs?.name || 'No org'}</p>
             </div>
           </div>
+          {/* Issue #12 fix: imported server action instead of inline */}
           <form action={signOut}>
             <button type="submit" className="w-full text-left px-3 py-2 text-xs text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-[#1a1a1a]">
               Sign out →
@@ -57,7 +61,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </form>
         </div>
       </aside>
-      {/* Main */}
       <main className="flex-1 ml-60 min-h-screen">
         {children}
       </main>

@@ -25,13 +25,29 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const protectedPaths = ['/dashboard', '/meets']
-  const isProtected = protectedPaths.some(p => request.nextUrl.pathname.startsWith(p))
+  // Issue #8 fix: /meets/* public routes (live, scoreboard, detail page)
+  // are intentionally NOT protected so the demo link and public results work.
+  // Only /dashboard and meet management/registration require auth.
+  const protectedPaths = [
+    '/dashboard',
+    '/meets/*/manage',
+    '/meets/*/timing',
+    '/meets/*/register',
+  ]
+
+  const pathname = request.nextUrl.pathname
+
+  const isProtected = [
+    '/dashboard',
+    '/meets/' // only sub-paths that are write/manage
+  ].some(p => pathname.startsWith(p)) &&
+    !pathname.match(/^\/meets\/[^/]+\/(live|scoreboard)$/) &&
+    !pathname.match(/^\/meets\/[^/]+$/)
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/signin'
-    url.searchParams.set('redirect', request.nextUrl.pathname)
+    url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 

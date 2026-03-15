@@ -5,6 +5,20 @@ export default async function LandingPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Issue #5 fix: look up a real public meet for the demo link rather than
+  // hardcoding a UUID that may not exist in production.
+  const { data: demoMeet } = await supabase
+    .from('meets')
+    .select('id')
+    .eq('public', true)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .single()
+
+  const demoHref = demoMeet
+    ? `/meets/${demoMeet.id}/live`
+    : '/dashboard/meets'
+
   return (
     <div className="min-h-screen bg-[#080808] flex flex-col">
       {/* Nav */}
@@ -49,7 +63,7 @@ export default async function LandingPage() {
           <Link href="/auth/signup" className="bg-[#FF4B00] hover:bg-[#e04200] text-white font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg shadow-orange-500/20">
             Start Free →
           </Link>
-          <Link href="/meets/44444444-4444-4444-4444-444444444444/live" className="border border-[#2A2A2A] hover:border-[#FF4B00]/50 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors">
+          <Link href={demoHref} className="border border-[#2A2A2A] hover:border-[#FF4B00]/50 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors">
             View Live Demo
           </Link>
         </div>
