@@ -2,7 +2,6 @@ export type OrgType = 'school' | 'club' | 'college' | 'elite'
 export type MeetType = 'hs' | 'ncaa' | 'club' | 'elite'
 export type GenderType = 'm' | 'f' | 'mixed'
 export type EntryStatus = 'pending' | 'confirmed' | 'scratched'
-export type PaymentStatus = 'pending' | 'paid' | 'refunded' | 'failed'
 
 export interface Org {
   id: string
@@ -156,29 +155,6 @@ export interface Result {
   splits?: number[]
   created_at: string
   entries?: Entry & { athletes?: Athlete; teams?: Team; events?: Event }
-}
-
-export interface Payment {
-  id: string
-  meet_id: string
-  team_id?: string
-  org_id?: string
-  amount: number
-  stripe_id?: string
-  stripe_session_id?: string
-  status: PaymentStatus
-  metadata?: Record<string, unknown>
-  created_at: string
-}
-
-export interface StandardEvent {
-  id: string
-  name: string
-  distance?: number
-  is_field: boolean
-  is_relay: boolean
-  gender: GenderType
-  meet_types: MeetType[]
 }
 
 export const MEET_TYPE_LABELS: Record<MeetType, string> = {

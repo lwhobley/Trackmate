@@ -10,7 +10,6 @@ create type org_type as enum ('school', 'club', 'college', 'elite');
 create type meet_type as enum ('hs', 'ncaa', 'club', 'elite');
 create type gender_type as enum ('m', 'f', 'mixed');
 create type entry_status as enum ('pending', 'confirmed', 'scratched');
-create type payment_status as enum ('pending', 'paid', 'refunded', 'failed');
 
 -- ============================================================
 -- ORGS
@@ -193,17 +192,12 @@ create table results (
 );
 
 -- ============================================================
--- PAYMENTS
 -- ============================================================
-create table payments (
   id uuid primary key default uuid_generate_v4(),
   meet_id uuid not null references meets(id) on delete cascade,
   team_id uuid references teams(id),
   org_id uuid references orgs(id),
   amount numeric(10,2) not null,
-  stripe_id text,
-  stripe_session_id text,
-  status payment_status default 'pending',
   metadata jsonb,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -332,14 +326,9 @@ alter table results enable row level security;
 create policy "Results visible" on results for select using (true);
 create policy "Authenticated manage results" on results for all using (auth.role() = 'authenticated');
 
--- PAYMENTS
-alter table payments enable row level security;
-create policy "Payments visible to org" on payments for select using (
   org_id in (select org_id from profiles where id = auth.uid()) or
   meet_id in (select id from meets where org_id in (select org_id from profiles where id = auth.uid()))
 );
-create policy "Authenticated create payments" on payments for insert with check (auth.role() = 'authenticated');
-create policy "Service can update payments" on payments for update using (true);
 
 -- RULESETS
 alter table rulesets enable row level security;
@@ -369,7 +358,6 @@ create trigger update_athletes_updated_at before update on athletes for each row
 create trigger update_entries_updated_at before update on entries for each row execute function update_updated_at_column();
 create trigger update_heats_updated_at before update on heats for each row execute function update_updated_at_column();
 create trigger update_results_updated_at before update on results for each row execute function update_updated_at_column();
-create trigger update_payments_updated_at before update on payments for each row execute function update_updated_at_column();
 
 -- Handle new user signup
 create or replace function public.handle_new_user()

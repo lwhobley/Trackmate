@@ -53,7 +53,7 @@ export default async function LandingPage() {
           </h1>
 
           <p className="text-[#8888A0] text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed fade-up fade-up-3">
-            From entry registration to live FAT results — TrackMate runs HS, NCAA, club, and elite meets with FinishLynx integration, Stripe payments, and real-time scoreboards.
+            From entry registration to live FAT results — TrackMate runs HS, NCAA, club, and elite meets with FinishLynx integration and real-time scoreboards.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 fade-up fade-up-4">
@@ -105,7 +105,7 @@ export default async function LandingPage() {
               },
               {
                 icon: '🎟️',
-                title: 'Stripe Payments',
+                title: 'Entry Management',
                 desc: 'Per-athlete and per-team entry fees with automatic confirmation on payment.',
               },
               {
