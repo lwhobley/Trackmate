@@ -15,55 +15,47 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .from('profiles').select('*, orgs(*)').eq('id', user.id).single<ProfileWithOrg>()
 
   return (
-    <div className="min-h-screen bg-[#050505] flex">
+    <div className="min-h-screen bg-[#05050A] flex">
       {/* Sidebar */}
-      <aside className="w-56 border-r border-[#181818] bg-[#080808] flex flex-col fixed h-full z-30">
+      <aside className="w-56 border-r border-[#252535] bg-[#08080F] flex flex-col fixed h-full">
         {/* Logo */}
-        <div className="px-5 py-4 border-b border-[#181818]">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#FF4B00] rounded flex items-center justify-center rotate-2">
-              <span className="text-white font-black text-xs -rotate-2" style={{fontFamily:'Barlow Condensed,sans-serif'}}>TM</span>
+        <div className="p-5 border-b border-[#252535]">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 bg-[#FF3B00] rounded-lg flex items-center justify-center shadow-lg shadow-orange-600/30">
+              <span className="font-display font-black italic text-white text-sm">TM</span>
             </div>
-            <span className="font-black text-lg text-white tracking-widest uppercase" style={{fontFamily:'Barlow Condensed,sans-serif'}}>TrackMate</span>
+            <span className="font-display font-black italic text-white text-lg tracking-wide">TRACKMATE</span>
           </Link>
         </div>
 
-        {/* Org badge */}
-        {profile?.orgs && (
-          <div className="mx-3 mt-3 px-3 py-2 rounded bg-[#FF4B00]/10 border border-[#FF4B00]/20">
-            <p className="text-[10px] text-[#FF4B00] font-bold uppercase tracking-widest mb-0.5">Organization</p>
-            <p className="text-white text-xs font-semibold truncate">{profile.orgs.name}</p>
-            <p className="text-[#555] text-[10px] uppercase tracking-wider">{profile.orgs.type}</p>
-          </div>
-        )}
-
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 mt-2">
+        <nav className="flex-1 p-3 space-y-0.5">
+          <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-[#444458]">Navigation</p>
           {[
-            { href: '/dashboard/orgs', label: 'My Meets', icon: '🏟' },
-            { href: '/dashboard/meets', label: 'Browse Meets', icon: '📋' },
+            { href: '/dashboard/orgs', label: 'My Meets', icon: '🏟️' },
+            { href: '/dashboard/meets', label: 'Browse Meets', icon: '🔍' },
           ].map(item => (
             <Link key={item.href} href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-[#666] hover:text-white hover:bg-[#151515] transition-all group">
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#8888A0] hover:text-white hover:bg-[#16161F] transition-all group">
               <span className="text-base">{item.icon}</span>
-              <span className="font-medium tracking-wide">{item.label}</span>
+              <span className="font-medium">{item.label}</span>
             </Link>
           ))}
         </nav>
 
         {/* User */}
-        <div className="p-3 border-t border-[#181818]">
-          <div className="flex items-center gap-3 px-3 py-2 mb-1">
-            <div className="w-7 h-7 rounded bg-[#FF4B00] flex items-center justify-center text-xs text-white font-black flex-shrink-0" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+        <div className="p-3 border-t border-[#252535]">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#0F0F1A] mb-1">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#FF3B00] to-[#FF8C00] flex items-center justify-center text-xs text-white font-black shadow">
               {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
             </div>
-            <div className="min-w-0">
+            <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-white truncate">{profile?.name || 'User'}</p>
-              <p className="text-[10px] text-[#444] truncate">{user.email}</p>
+              <p className="text-[10px] text-[#8888A0] truncate">{profile?.orgs?.name || 'No org'}</p>
             </div>
           </div>
           <form action={signOut}>
-            <button type="submit" className="w-full text-left px-3 py-1.5 text-xs text-[#444] hover:text-[#FF4B00] transition-colors rounded hover:bg-[#111] font-medium tracking-wide">
+            <button type="submit" className="w-full text-left px-3 py-1.5 text-xs text-[#444458] hover:text-[#8888A0] transition-colors rounded-lg hover:bg-[#0F0F1A]">
               Sign out →
             </button>
           </form>
@@ -71,7 +63,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       {/* Main */}
-      <main className="flex-1 ml-56 min-h-screen relative z-10">{children}</main>
+      <main className="flex-1 ml-56 min-h-screen">
+        {children}
+      </main>
     </div>
   )
 }

@@ -1,7 +1,6 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
-  darkMode: 'class',
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -11,19 +10,16 @@ const config: Config = {
     extend: {
       colors: {
         brand: '#FF4B00',
-        'brand-hover': '#e04200',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        display: ['Barlow Condensed', 'sans-serif'],
+        body: ['Barlow', 'sans-serif'],
       },
-      animation: {
-        'pulse-dot': 'pulse-dot 1.5s ease-in-out infinite',
-      },
-      keyframes: {
-        'pulse-dot': {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.4' },
-        },
+      fontWeight: {
+        '600': '600',
+        '700': '700',
+        '800': '800',
+        '900': '900',
       },
     },
   },

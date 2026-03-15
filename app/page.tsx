@@ -4,32 +4,28 @@ import { createClient } from '@/lib/supabase/server'
 export default async function LandingPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: demoMeet } = await supabase.from('meets').select('id').eq('public', true).order('created_at', { ascending: true }).limit(1).single()
+  const { data: demoMeet } = await supabase.from('meets').select('id').eq('public', true).limit(1).single()
   const demoHref = demoMeet ? `/meets/${demoMeet.id}/live` : '/dashboard/meets'
 
   return (
-    <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
-      {/* Diagonal orange accent bar */}
-      <div className="absolute top-0 right-0 w-1 h-full bg-[#FF4B00] opacity-60 z-10" />
-      <div className="absolute top-0 right-4 w-px h-full bg-[#FF4B00] opacity-20 z-10" />
-
+    <div className="min-h-screen bg-[#05050A] flex flex-col track-bg overflow-hidden">
       {/* Nav */}
-      <nav className="relative z-20 flex items-center justify-between px-8 py-5 border-b border-[#181818]">
+      <nav className="relative z-10 flex items-center justify-between px-6 md:px-10 py-5 border-b border-[#252535]">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-[#FF4B00] rounded flex items-center justify-center rotate-3">
-            <span className="text-white font-black text-sm -rotate-3" style={{fontFamily:'Barlow Condensed,sans-serif'}}>TM</span>
+          <div className="w-9 h-9 bg-[#FF3B00] rounded-lg flex items-center justify-center shadow-lg shadow-orange-600/30">
+            <span className="font-display font-900 text-white text-base italic font-black">TM</span>
           </div>
-          <span className="text-white font-black text-2xl tracking-tight" style={{fontFamily:'Barlow Condensed,sans-serif', letterSpacing:'0.04em'}}>TRACKMATE</span>
+          <span className="font-display text-xl font-black italic text-white tracking-wide">TRACKMATE</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {user ? (
-            <Link href="/dashboard/orgs" className="bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-bold px-5 py-2 rounded text-sm transition-colors uppercase tracking-wider" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+            <Link href="/dashboard/orgs" className="bg-[#FF3B00] hover:bg-[#e03500] text-white font-semibold px-5 py-2 rounded-lg text-sm transition-all shadow-lg shadow-orange-600/20 hover:shadow-orange-600/40">
               Dashboard →
             </Link>
           ) : (
             <>
-              <Link href="/auth/signin" className="text-[#888] hover:text-white text-sm transition-colors font-medium">Sign In</Link>
-              <Link href="/auth/signup" className="bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-bold px-5 py-2 rounded text-sm transition-colors uppercase tracking-wider" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+              <Link href="/auth/signin" className="text-[#8888A0] hover:text-white text-sm transition-colors font-medium">Sign In</Link>
+              <Link href="/auth/signup" className="bg-[#FF3B00] hover:bg-[#e03500] text-white font-semibold px-5 py-2 rounded-lg text-sm transition-all shadow-lg shadow-orange-600/20">
                 Get Started
               </Link>
             </>
@@ -38,55 +34,107 @@ export default async function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 py-20 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#FF4B00]/30 bg-[#FF4B00]/8 text-[#FF4B00] text-xs font-bold mb-8 uppercase tracking-[0.15em]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FF4B00] live-dot" />
-          HS · NCAA · Club · Elite
-        </div>
+      <main className="flex-1 relative">
+        {/* Background orb */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#FF3B00]/10 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="relative max-w-6xl mx-auto px-6 md:px-10 pt-20 pb-16 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FF3B00]/10 border border-[#FF3B00]/20 mb-8 fade-up fade-up-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FF3B00] live-dot" />
+            <span className="text-[#FF3B00] text-xs font-bold uppercase tracking-widest">HS · NCAA · Club · Elite</span>
+          </div>
 
-        <h1 className="font-black text-[clamp(3.5rem,10vw,8rem)] leading-[0.9] mb-6 uppercase tracking-tight" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
-          Track &amp; Field<br/>
-          <span className="gradient-text">Meet Management</span><br/>
-          <span className="text-[#333]">Done Right.</span>
-        </h1>
+          {/* Headline */}
+          <h1 className="font-display font-black italic text-white leading-none mb-6 fade-up fade-up-2"
+            style={{ fontSize: 'clamp(56px, 10vw, 120px)' }}>
+            MEET MANAGEMENT<br />
+            <span className="gradient-text">BUILT FOR SPEED.</span>
+          </h1>
 
-        <p className="text-[#888] text-lg max-w-xl mb-10 font-normal leading-relaxed">
-          From entry registration to live results. FinishLynx integration, real-time scoreboards, Stripe payments, and automated TFRRS/Hy-Tek exports.
-        </p>
+          <p className="text-[#8888A0] text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed fade-up fade-up-3">
+            From entry registration to live FAT results — TrackMate runs HS, NCAA, club, and elite meets with FinishLynx integration, Stripe payments, and real-time scoreboards.
+          </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <Link href="/auth/signup"
-            className="bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-black px-10 py-4 rounded text-lg uppercase tracking-wider transition-all hover:scale-105 shadow-lg shadow-orange-500/25"
-            style={{fontFamily:'Barlow Condensed,sans-serif'}}>
-            Start Free →
-          </Link>
-          <Link href={demoHref}
-            className="border border-[#333] hover:border-[#FF4B00] text-[#888] hover:text-white font-bold px-10 py-4 rounded text-lg uppercase tracking-wider transition-all"
-            style={{fontFamily:'Barlow Condensed,sans-serif'}}>
-            Live Demo
-          </Link>
+          <div className="flex flex-wrap items-center justify-center gap-4 fade-up fade-up-4">
+            <Link href="/auth/signup"
+              className="group relative bg-[#FF3B00] hover:bg-[#e03500] text-white font-bold px-8 py-4 rounded-xl text-lg transition-all shadow-2xl shadow-orange-600/30 hover:shadow-orange-600/50 hover:-translate-y-0.5">
+              Start Free
+              <span className="ml-2 group-hover:translate-x-1 inline-block transition-transform">→</span>
+            </Link>
+            <Link href={demoHref}
+              className="border border-[#252535] hover:border-[#FF3B00]/50 bg-[#0A0A12] text-white font-semibold px-8 py-4 rounded-xl text-lg transition-all hover:-translate-y-0.5">
+              Live Demo
+            </Link>
+          </div>
+
+          {/* Stats bar */}
+          <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mt-16 pt-10 border-t border-[#252535] fade-up fade-up-4">
+            {[
+              { n: '4', label: 'Meet Types' },
+              { n: '21+', label: 'Events / Meet' },
+              { n: '∞', label: 'Real-time' },
+            ].map(s => (
+              <div key={s.label} className="text-center">
+                <div className="font-display font-black italic text-[#FF3B00] text-4xl">{s.n}</div>
+                <div className="text-[#8888A0] text-xs uppercase tracking-wider mt-1">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Feature grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-px mt-24 w-full max-w-5xl border border-[#181818] rounded-xl overflow-hidden">
-          {[
-            { icon: '⚡', title: 'FAT Bridge', desc: 'Watches FinishLynx Results folder, parses LIF/CSV, syncs instantly.' },
-            { icon: '📡', title: 'Live Realtime', desc: 'Supabase Realtime pushes results to scoreboards as they come in.' },
-            { icon: '🏫', title: 'Multi-Ruleset', desc: 'NFHS, NCAA FAT requirements, AAU scoring — auto-applied per meet type.' },
-            { icon: '💳', title: 'Stripe Payments', desc: 'Per-athlete and per-team entry fees at registration checkout.' },
-            { icon: '📄', title: 'Hy-Tek & TFRRS', desc: 'One-click export to Hy-Tek CSV, TFRRS XML, state HS formats.' },
-            { icon: '📱', title: 'PWA Ready', desc: 'Install on any device. Coaches and officials work from the track.' },
-          ].map((f, i) => (
-            <div key={f.title} className="bg-[#0A0A0A] hover:bg-[#111] transition-colors p-6 group">
-              <div className="text-2xl mb-3">{f.icon}</div>
-              <h3 className="font-black text-white text-lg mb-1 uppercase tracking-wide group-hover:text-[#FF4B00] transition-colors" style={{fontFamily:'Barlow Condensed,sans-serif'}}>{f.title}</h3>
-              <p className="text-sm text-[#555] leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
+        <div className="max-w-6xl mx-auto px-6 md:px-10 pb-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              {
+                icon: '⚡',
+                title: 'FAT Bridge',
+                desc: 'Watches your FinishLynx Results folder. Parses LIF/CSV and upserts to Supabase in real time.',
+                accent: true,
+              },
+              {
+                icon: '📡',
+                title: 'Live Results',
+                desc: 'Supabase Realtime pushes FAT times to coaches and scoreboards the instant they arrive.',
+              },
+              {
+                icon: '🏫',
+                title: 'Multi-Ruleset',
+                desc: 'NFHS wind rules, NCAA FAT requirements, AAU scoring — auto-applied by meet type.',
+              },
+              {
+                icon: '🎟️',
+                title: 'Stripe Payments',
+                desc: 'Per-athlete and per-team entry fees with automatic confirmation on payment.',
+              },
+              {
+                icon: '📄',
+                title: 'Hy-Tek & TFRRS',
+                desc: 'One-click export to Hy-Tek CSV, TFRRS XML, LIF start lists, and HS formats.',
+              },
+              {
+                icon: '📱',
+                title: 'PWA Ready',
+                desc: 'Installable on any device. Coaches register athletes trackside with no app store needed.',
+              },
+            ].map(f => (
+              <div key={f.title}
+                className={`relative p-6 rounded-2xl border transition-all hover:-translate-y-0.5 ${
+                  f.accent
+                    ? 'bg-[#FF3B00]/10 border-[#FF3B00]/30 hover:border-[#FF3B00]/50'
+                    : 'bg-[#0A0A12] border-[#252535] hover:border-[#353548]'
+                }`}>
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <h3 className="font-display font-black italic text-white text-xl mb-2">{f.title}</h3>
+                <p className="text-[#8888A0] text-sm leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </main>
 
-      <footer className="relative z-10 border-t border-[#181818] py-6 text-center text-[#333] text-xs tracking-widest uppercase">
+      <footer className="border-t border-[#252535] py-6 text-center text-[#444458] text-sm">
         © {new Date().getFullYear()} TrackMate · Built for the sport
       </footer>
     </div>
