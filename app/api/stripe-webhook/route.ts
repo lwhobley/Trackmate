@@ -3,7 +3,6 @@ import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
-// Issue #4 fix: module-level singleton
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.CheckoutSession
+    const session = event.data.object as Stripe.Checkout.Session
     const { meet_id, team_id, org_id } = session.metadata || {}
 
     await supabaseAdmin.from('payments').upsert({
@@ -42,16 +41,14 @@ export async function POST(req: NextRequest) {
       .eq('status', 'pending')
   }
 
-  // Issue #3 fix: expired sessions clean up pending entries
   if (event.type === 'checkout.session.expired') {
-    const session = event.data.object as Stripe.CheckoutSession
+    const session = event.data.object as Stripe.Checkout.Session
     const { meet_id, team_id } = session.metadata || {}
 
     await supabaseAdmin.from('payments')
       .update({ status: 'failed' })
       .eq('stripe_session_id', session.id)
 
-    // Clean up dangling pending entries so they don't pollute the meet
     if (meet_id && team_id) {
       await supabaseAdmin.from('entries')
         .update({ status: 'scratched' })
@@ -63,5 +60,3 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ received: true })
 }
-
-// Issue #11 fix: removed dead Pages Router `export const config` — not used in App Router
