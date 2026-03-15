@@ -3,6 +3,13 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { MEET_TYPE_LABELS } from '@/lib/types'
 
+const TYPE_PILL: Record<string, string> = {
+  hs:    'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  ncaa:  'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  club:  'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  elite: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20',
+}
+
 export default async function OrgsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -11,101 +18,120 @@ export default async function OrgsPage() {
   const { data: profile } = await supabase.from('profiles').select('*, orgs(*)').eq('id', user.id).single()
   const org = (profile?.orgs as any)
 
-  const { data: meets } = await supabase.from('meets').select('*, rulesets(*)')
-    .eq('org_id', org?.id || '').order('date', { ascending: false }).limit(20)
+  const { data: meets } = await supabase.from('meets')
+    .select('*, rulesets(*)')
+    .eq('org_id', org?.id || '')
+    .order('date', { ascending: false })
+    .limit(20)
 
-  const typeClass: Record<string, string> = { hs: 'badge-hs', ncaa: 'badge-ncaa', club: 'badge-club', elite: 'badge-elite' }
   const upcoming = meets?.filter(m => new Date(m.date) >= new Date()) || []
-  const past = meets?.filter(m => new Date(m.date) < new Date()) || []
+  const past     = meets?.filter(m => new Date(m.date) <  new Date()) || []
 
   return (
-    <div style={{ padding: '40px 48px', maxWidth: 1100 }}>
+    <div className="p-8 max-w-5xl mx-auto">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 40 }}>
+      <div className="flex items-end justify-between mb-8">
         <div>
-          <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 6 }}>
-            {org?.type?.toUpperCase() || 'ORGANIZATION'}
-          </p>
-          <h1 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 40, letterSpacing: '-0.01em', lineHeight: 1 }}>
-            {org?.name || 'Welcome to TrackMate'}
+          <p className="text-[#555] text-xs font-bold uppercase tracking-[0.15em] mb-1">Dashboard</p>
+          <h1 className="text-4xl font-black text-white uppercase tracking-wide" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+            {org?.name || 'Your Meets'}
           </h1>
         </div>
         {org && (
-          <Link href={`/dashboard/orgs/${org.id}/meets/new`} className="btn btn-primary">
+          <Link href={`/dashboard/orgs/${org.id}/meets/new`}
+            className="bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-black px-6 py-3 rounded text-sm uppercase tracking-widest transition-all hover:scale-105"
+            style={{fontFamily:'Barlow Condensed,sans-serif'}}>
             + New Meet
           </Link>
         )}
       </div>
 
-      {!org ? (
-        <div className="card" style={{ padding: '80px 40px', textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏟️</div>
-          <h3 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 24, marginBottom: 8 }}>No organization linked</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Complete your profile setup to create and manage meets.</p>
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        {[
+          { label: 'Total Meets',  value: meets?.length || 0 },
+          { label: 'Upcoming',     value: upcoming.length },
+          { label: 'Org Type',     value: org?.type?.toUpperCase() || '—' },
+        ].map(s => (
+          <div key={s.label} className="bg-[#0A0A0A] border border-[#181818] rounded-xl p-5 group hover:border-[#FF4B00]/30 transition-colors">
+            <div className="stat-num text-white mb-1">{s.value}</div>
+            <div className="text-[#444] text-xs font-bold uppercase tracking-widest">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {!meets?.length ? (
+        <div className="bg-[#0A0A0A] border border-[#181818] rounded-xl p-16 text-center">
+          <p className="text-6xl mb-4">🏁</p>
+          <h3 className="text-2xl font-black text-white uppercase mb-2" style={{fontFamily:'Barlow Condensed,sans-serif'}}>No meets yet</h3>
+          <p className="text-[#444] text-sm mb-6">Create your first meet to get started</p>
+          {org && (
+            <Link href={`/dashboard/orgs/${org.id}/meets/new`}
+              className="inline-block bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-black px-8 py-3 rounded text-sm uppercase tracking-widest transition-colors"
+              style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+              Create Meet →
+            </Link>
+          )}
         </div>
       ) : (
-        <>
-          {/* Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 40 }}>
-            {[
-              { label: 'Total Meets', value: meets?.length || 0, sub: 'all time' },
-              { label: 'Upcoming', value: upcoming.length, sub: 'scheduled' },
-              { label: 'Past Meets', value: past.length, sub: 'completed' },
-              { label: 'Org Type', value: org.type?.charAt(0).toUpperCase() + org.type?.slice(1), sub: 'classification' },
-            ].map(s => (
-              <div key={s.label} className="card" style={{ padding: '20px 24px' }}>
-                <div className="stat-number" style={{ fontSize: 36, color: 'white', lineHeight: 1 }}>{s.value}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#FF4B00', marginTop: 4 }}>{s.label}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{s.sub}</div>
+        <div className="space-y-6">
+          {upcoming.length > 0 && (
+            <section>
+              <h2 className="text-xs font-bold text-[#FF4B00] uppercase tracking-[0.2em] mb-3">Upcoming</h2>
+              <div className="divide-y divide-[#111] bg-[#0A0A0A] border border-[#181818] rounded-xl overflow-hidden">
+                {upcoming.map(meet => <MeetRow key={meet.id} meet={meet} />)}
               </div>
-            ))}
-          </div>
-
-          {/* Meets table */}
-          <div className="card" style={{ overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid var(--border-dim)' }}>
-              <h2 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 18, letterSpacing: '0.02em' }}>MEETS</h2>
-              <Link href={`/dashboard/orgs/${org.id}/meets/new`} style={{ fontSize: 12, color: '#FF4B00', textDecoration: 'none', fontWeight: 700 }}>+ Create meet</Link>
-            </div>
-            {!meets?.length ? (
-              <div style={{ padding: '60px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>🏁</div>
-                <p style={{ fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 18, marginBottom: 6 }}>No meets yet</p>
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 20 }}>Create your first meet to get started</p>
-                <Link href={`/dashboard/orgs/${org.id}/meets/new`} className="btn btn-primary btn-sm">Create Meet</Link>
+            </section>
+          )}
+          {past.length > 0 && (
+            <section>
+              <h2 className="text-xs font-bold text-[#333] uppercase tracking-[0.2em] mb-3">Past</h2>
+              <div className="divide-y divide-[#0D0D0D] bg-[#080808] border border-[#141414] rounded-xl overflow-hidden opacity-70">
+                {past.map(meet => <MeetRow key={meet.id} meet={meet} />)}
               </div>
-            ) : (
-              <div>
-                {meets.map((meet, i) => (
-                  <div key={meet.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: i < meets.length - 1 ? '1px solid var(--border-dim)' : 'none', transition: 'background 0.1s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-3)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--bg-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ fontSize: 18 }}>{meet.meet_type === 'hs' ? '🏫' : meet.meet_type === 'ncaa' ? '🎓' : meet.meet_type === 'elite' ? '🏅' : '🏃'}</span>
-                      </div>
-                      <div>
-                        <p style={{ fontWeight: 600, color: 'white', fontSize: 14 }}>{meet.name}</p>
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                          {new Date(meet.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          {meet.venue && ` · ${meet.venue}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span className={`badge ${typeClass[meet.meet_type]}`}>
-                        {MEET_TYPE_LABELS[meet.meet_type as keyof typeof MEET_TYPE_LABELS]}
-                      </span>
-                      <Link href={`/meets/${meet.id}`} className="btn btn-ghost btn-sm">View</Link>
-                      <Link href={`/meets/${meet.id}/manage`} className="btn btn-secondary btn-sm">Manage</Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
+            </section>
+          )}
+        </div>
       )}
+    </div>
+  )
+}
+
+function MeetRow({ meet }: { meet: any }) {
+  const TYPE_PILL: Record<string, string> = {
+    hs:    'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    ncaa:  'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    club:  'bg-orange-500/10 text-orange-400 border-orange-500/20',
+    elite: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20',
+  }
+  const TYPE_LABELS: Record<string, string> = { hs: 'HS', ncaa: 'NCAA', club: 'Club', elite: 'Elite' }
+  const d = new Date(meet.date)
+  const isUpcoming = d >= new Date()
+
+  return (
+    <div className="flex items-center justify-between px-5 py-4 hover:bg-[#0F0F0F] transition-colors group">
+      <div className="flex items-center gap-4">
+        {/* Date block */}
+        <div className="text-center w-10 flex-shrink-0">
+          <div className="text-[10px] text-[#444] uppercase font-bold tracking-wider">{d.toLocaleDateString('en-US',{month:'short'})}</div>
+          <div className="text-xl font-black text-white leading-none" style={{fontFamily:'Barlow Condensed,sans-serif'}}>{d.getDate()}</div>
+        </div>
+        <div>
+          <p className="font-semibold text-white group-hover:text-[#FF4B00] transition-colors">{meet.name}</p>
+          <p className="text-xs text-[#444] mt-0.5">{meet.venue || 'Venue TBD'}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border ${TYPE_PILL[meet.meet_type] || ''}`}>
+          {TYPE_LABELS[meet.meet_type] || meet.meet_type}
+        </span>
+        <Link href={`/meets/${meet.id}`} className="text-xs px-3 py-1.5 border border-[#222] text-[#555] hover:text-white hover:border-[#333] rounded transition-colors">
+          View
+        </Link>
+        <Link href={`/meets/${meet.id}/manage`} className="text-xs px-3 py-1.5 bg-[#151515] text-[#666] hover:text-white rounded transition-colors">
+          Manage →
+        </Link>
+      </div>
     </div>
   )
 }

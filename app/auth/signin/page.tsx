@@ -23,44 +23,65 @@ export default function SignInPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      {/* Background accent */}
-      <div style={{ position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 400, background: 'radial-gradient(ellipse, rgba(255,75,0,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg,#FF4B00,#cc3c00)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 4px 24px rgba(255,75,0,0.35)' }}>
-            <span style={{ color: 'white', fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 18 }}>TM</span>
+    <div className="min-h-screen bg-[#050505] flex">
+      {/* Left accent */}
+      <div className="hidden lg:flex w-1/2 bg-[#080808] border-r border-[#181818] items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FF4B00]/5 to-transparent" />
+        <div className="relative text-center px-12">
+          <div className="w-16 h-16 bg-[#FF4B00] rounded-lg flex items-center justify-center mx-auto mb-6 rotate-3">
+            <span className="text-white font-black text-2xl -rotate-3" style={{fontFamily:'Barlow Condensed,sans-serif'}}>TM</span>
           </div>
-          <h1 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 32, letterSpacing: '-0.01em' }}>WELCOME BACK</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>Sign in to your TrackMate account</p>
+          <h2 className="text-5xl font-black text-white uppercase tracking-wider mb-3" style={{fontFamily:'Barlow Condensed,sans-serif'}}>TrackMate</h2>
+          <p className="text-[#444] text-sm leading-relaxed max-w-xs mx-auto">
+            The complete platform for track & field meet management. HS, NCAA, Club, Elite.
+          </p>
+          <div className="mt-10 grid grid-cols-2 gap-3 text-left">
+            {['FinishLynx FAT Bridge','Live Realtime Scores','Stripe Payments','TFRRS / Hy-Tek Export'].map(f => (
+              <div key={f} className="flex items-center gap-2 text-xs text-[#555]">
+                <span className="text-[#FF4B00]">✓</span> {f}
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <div className="card" style={{ padding: 28 }}>
+      {/* Right form */}
+      <div className="flex-1 flex items-center justify-center px-8 py-12">
+        <div className="w-full max-w-sm">
+          <div className="mb-8">
+            <h1 className="text-4xl font-black text-white uppercase tracking-wide mb-1" style={{fontFamily:'Barlow Condensed,sans-serif'}}>Welcome Back</h1>
+            <p className="text-[#444] text-sm">Sign in to your account</p>
+          </div>
+
           {error && (
-            <div style={{ marginBottom: 20, padding: '12px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', fontSize: 13 }}>
+            <div className="mb-4 px-4 py-3 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
               {error}
             </div>
           )}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <label className="label">Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="input" placeholder="you@school.edu" />
-            </div>
-            <div>
-              <label className="label">Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="input" placeholder="••••••••" />
-            </div>
-            <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', marginTop: 4, height: 44 }}>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {[
+              { label: 'Email', type: 'email', value: email, set: setEmail, placeholder: 'you@school.edu' },
+              { label: 'Password', type: 'password', value: password, set: setPassword, placeholder: '••••••••' },
+            ].map(f => (
+              <div key={f.label}>
+                <label className="text-xs font-bold text-[#555] uppercase tracking-widest block mb-2">{f.label}</label>
+                <input type={f.type} value={f.value} onChange={e => f.set(e.target.value)} required placeholder={f.placeholder}
+                  className="w-full h-11 bg-[#0A0A0A] border border-[#222] rounded px-4 text-sm text-white placeholder:text-[#333] focus:outline-none focus:border-[#FF4B00] transition-colors" />
+              </div>
+            ))}
+            <button type="submit" disabled={loading}
+              className="w-full h-11 bg-[#FF4B00] hover:bg-[#cc3c00] disabled:opacity-50 text-white font-black rounded text-sm uppercase tracking-widest transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+              style={{fontFamily:'Barlow Condensed,sans-serif'}}>
               {loading ? 'Signing in...' : 'Sign In →'}
             </button>
           </form>
+
+          <p className="text-center text-sm text-[#444] mt-6">
+            No account?{' '}
+            <Link href="/auth/signup" className="text-[#FF4B00] hover:underline font-medium">Sign up free</Link>
+          </p>
         </div>
-        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 20 }}>
-          No account?{' '}
-          <Link href="/auth/signup" style={{ color: '#FF4B00', textDecoration: 'none', fontWeight: 600 }}>Sign up free</Link>
-        </p>
       </div>
     </div>
   )

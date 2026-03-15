@@ -8,108 +8,85 @@ export default async function LandingPage() {
   const demoHref = demoMeet ? `/meets/${demoMeet.id}/live` : '/dashboard/meets'
 
   return (
-    <div className="min-h-screen track-bg noise" style={{ background: 'var(--bg)' }}>
+    <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
+      {/* Diagonal orange accent bar */}
+      <div className="absolute top-0 right-0 w-1 h-full bg-[#FF4B00] opacity-60 z-10" />
+      <div className="absolute top-0 right-4 w-px h-full bg-[#FF4B00] opacity-20 z-10" />
+
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid var(--border-dim)', background: 'rgba(6,6,8,0.9)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, background: 'linear-gradient(135deg,#FF4B00,#cc3c00)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px rgba(255,75,0,0.4)' }}>
-              <span style={{ color: 'white', fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 14, letterSpacing: '-0.02em' }}>TM</span>
-            </div>
-            <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 22, letterSpacing: '-0.01em', color: 'white' }}>TRACKMATE</span>
+      <nav className="relative z-20 flex items-center justify-between px-8 py-5 border-b border-[#181818]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-[#FF4B00] rounded flex items-center justify-center rotate-3">
+            <span className="text-white font-black text-sm -rotate-3" style={{fontFamily:'Barlow Condensed,sans-serif'}}>TM</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {user ? (
-              <Link href="/dashboard/orgs" className="btn btn-primary btn-sm">Dashboard →</Link>
-            ) : (
-              <>
-                <Link href="/auth/signin" style={{ color: 'var(--text-muted)', fontSize: 13, fontWeight: 600, textDecoration: 'none', padding: '6px 12px' }}>Sign In</Link>
-                <Link href="/auth/signup" className="btn btn-primary btn-sm">Get Started</Link>
-              </>
-            )}
-          </div>
+          <span className="text-white font-black text-2xl tracking-tight" style={{fontFamily:'Barlow Condensed,sans-serif', letterSpacing:'0.04em'}}>TRACKMATE</span>
+        </div>
+        <div className="flex items-center gap-4">
+          {user ? (
+            <Link href="/dashboard/orgs" className="bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-bold px-5 py-2 rounded text-sm transition-colors uppercase tracking-wider" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+              Dashboard →
+            </Link>
+          ) : (
+            <>
+              <Link href="/auth/signin" className="text-[#888] hover:text-white text-sm transition-colors font-medium">Sign In</Link>
+              <Link href="/auth/signup" className="bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-bold px-5 py-2 rounded text-sm transition-colors uppercase tracking-wider" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
       {/* Hero */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 24px 80px', textAlign: 'center' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 14px', borderRadius: 99, background: 'rgba(255,75,0,0.08)', border: '1px solid rgba(255,75,0,0.2)', marginBottom: 32 }}>
-          <span className="live-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF4B00', display: 'inline-block' }} />
-          <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 11, letterSpacing: '0.1em', color: '#FF4B00' }}>HS · NCAA · CLUB · ELITE</span>
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 py-20 text-center">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#FF4B00]/30 bg-[#FF4B00]/8 text-[#FF4B00] text-xs font-bold mb-8 uppercase tracking-[0.15em]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FF4B00] live-dot" />
+          HS · NCAA · Club · Elite
         </div>
 
-        <h1 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 'clamp(56px, 10vw, 96px)', lineHeight: 0.92, letterSpacing: '-0.02em', marginBottom: 28 }}>
-          <span className="gradient-text-white">TRACK &amp; FIELD</span><br />
-          <span className="gradient-text">MEET MANAGEMENT</span><br />
-          <span className="gradient-text-white">DONE RIGHT.</span>
+        <h1 className="font-black text-[clamp(3.5rem,10vw,8rem)] leading-[0.9] mb-6 uppercase tracking-tight" style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+          Track &amp; Field<br/>
+          <span className="gradient-text">Meet Management</span><br/>
+          <span className="text-[#333]">Done Right.</span>
         </h1>
 
-        <p style={{ fontSize: 18, color: 'var(--text-muted)', maxWidth: 560, margin: '0 auto 40px', lineHeight: 1.6 }}>
-          From entry registration to live results. FinishLynx FAT bridge, real-time scoreboards, Stripe payments, and TFRRS/Hy-Tek exports.
+        <p className="text-[#888] text-lg max-w-xl mb-10 font-normal leading-relaxed">
+          From entry registration to live results. FinishLynx integration, real-time scoreboards, Stripe payments, and automated TFRRS/Hy-Tek exports.
         </p>
 
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/auth/signup" className="btn btn-primary btn-lg">
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link href="/auth/signup"
+            className="bg-[#FF4B00] hover:bg-[#cc3c00] text-white font-black px-10 py-4 rounded text-lg uppercase tracking-wider transition-all hover:scale-105 shadow-lg shadow-orange-500/25"
+            style={{fontFamily:'Barlow Condensed,sans-serif'}}>
             Start Free →
           </Link>
-          <Link href={demoHref} className="btn btn-ghost btn-lg">
-            View Live Demo
+          <Link href={demoHref}
+            className="border border-[#333] hover:border-[#FF4B00] text-[#888] hover:text-white font-bold px-10 py-4 rounded text-lg uppercase tracking-wider transition-all"
+            style={{fontFamily:'Barlow Condensed,sans-serif'}}>
+            Live Demo
           </Link>
         </div>
 
-        {/* Stats bar */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, maxWidth: 720, margin: '72px auto 0', background: 'var(--border)', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}>
+        {/* Feature grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-px mt-24 w-full max-w-5xl border border-[#181818] rounded-xl overflow-hidden">
           {[
-            { value: '4', label: 'Meet Types' },
-            { value: '30+', label: 'Track Events' },
-            { value: 'FAT', label: 'Bridge Ready' },
-            { value: 'Live', label: 'Realtime' },
-          ].map(s => (
-            <div key={s.label} style={{ background: 'var(--bg-2)', padding: '24px 16px', textAlign: 'center' }}>
-              <div className="stat-number gradient-text" style={{ fontSize: 32 }}>{s.value}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 4 }}>{s.label}</div>
+            { icon: '⚡', title: 'FAT Bridge', desc: 'Watches FinishLynx Results folder, parses LIF/CSV, syncs instantly.' },
+            { icon: '📡', title: 'Live Realtime', desc: 'Supabase Realtime pushes results to scoreboards as they come in.' },
+            { icon: '🏫', title: 'Multi-Ruleset', desc: 'NFHS, NCAA FAT requirements, AAU scoring — auto-applied per meet type.' },
+            { icon: '💳', title: 'Stripe Payments', desc: 'Per-athlete and per-team entry fees at registration checkout.' },
+            { icon: '📄', title: 'Hy-Tek & TFRRS', desc: 'One-click export to Hy-Tek CSV, TFRRS XML, state HS formats.' },
+            { icon: '📱', title: 'PWA Ready', desc: 'Install on any device. Coaches and officials work from the track.' },
+          ].map((f, i) => (
+            <div key={f.title} className="bg-[#0A0A0A] hover:bg-[#111] transition-colors p-6 group">
+              <div className="text-2xl mb-3">{f.icon}</div>
+              <h3 className="font-black text-white text-lg mb-1 uppercase tracking-wide group-hover:text-[#FF4B00] transition-colors" style={{fontFamily:'Barlow Condensed,sans-serif'}}>{f.title}</h3>
+              <p className="text-sm text-[#555] leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
-      </section>
+      </main>
 
-      {/* Features */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 100px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <h2 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 42, letterSpacing: '-0.01em' }}>
-            EVERYTHING YOUR MEET NEEDS
-          </h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
-          {[
-            { icon: '⚡', label: 'FAT BRIDGE', title: 'FinishLynx Integration', desc: 'Watches your Results folder, parses LIF/CSV files, and syncs times to the live scoreboard instantly.' },
-            { icon: '📡', label: 'REALTIME', title: 'Live Results', desc: 'Supabase Realtime pushes every result to coaches and spectators the moment it\'s entered.' },
-            { icon: '🏆', label: 'MULTI-RULESET', title: 'HS / NCAA / Club / Elite', desc: 'NFHS wind rules, NCAA FAT requirements, AAU scoring — auto-applied per meet type.' },
-            { icon: '🎟️', label: 'PAYMENTS', title: 'Stripe Checkout', desc: 'Per-athlete and per-team entry fees with automatic entry confirmation on payment.' },
-            { icon: '📄', label: 'EXPORTS', title: 'Hy-Tek & TFRRS', desc: 'One-click export to Hy-Tek CSV, TFRRS XML, LIF start lists, and state HS formats.' },
-            { icon: '📱', label: 'PWA', title: 'Works on Any Device', desc: 'Install on iPad at the track. Coaches enter athletes, officials record results.' },
-          ].map(f => (
-            <div key={f.title} className="card card-hover" style={{ padding: '28px 28px 32px', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #FF4B00, transparent)' }} />
-              <div style={{ fontSize: 28, marginBottom: 16 }}>{f.icon}</div>
-              <div className="badge badge-hs" style={{ marginBottom: 10, fontSize: 10 }}>{f.label}</div>
-              <h3 style={{ fontFamily: 'Barlow Condensed', fontWeight: 800, fontSize: 20, marginBottom: 8 }}>{f.title}</h3>
-              <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ borderTop: '1px solid var(--border-dim)', padding: '80px 24px', textAlign: 'center', background: 'var(--bg-1)' }}>
-        <h2 style={{ fontFamily: 'Barlow Condensed', fontWeight: 900, fontSize: 48, marginBottom: 16 }}>
-          READY TO RUN?
-        </h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>Set up your first meet in under 5 minutes.</p>
-        <Link href="/auth/signup" className="btn btn-primary btn-lg">Create Free Account →</Link>
-      </section>
-
-      <footer style={{ borderTop: '1px solid var(--border-dim)', padding: '24px', textAlign: 'center', color: 'var(--text-subtle)', fontSize: 13 }}>
+      <footer className="relative z-10 border-t border-[#181818] py-6 text-center text-[#333] text-xs tracking-widest uppercase">
         © {new Date().getFullYear()} TrackMate · Built for the sport
       </footer>
     </div>
