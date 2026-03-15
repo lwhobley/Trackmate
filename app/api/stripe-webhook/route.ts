@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
-import Stripe from 'stripe'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,7 +11,7 @@ export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
-  let event: Stripe.Event
+  let event: any
   try {
     event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err: any) {
@@ -20,15 +19,17 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
-    const { meet_id, team_id, org_id } = session.metadata || {}
+    const session = event.data.object
+    const meet_id = session.metadata?.meet_id
+    const team_id = session.metadata?.team_id
+    const org_id = session.metadata?.org_id
 
     await supabaseAdmin.from('payments').upsert({
       meet_id,
       team_id,
       org_id,
       amount: (session.amount_total || 0) / 100,
-      stripe_id: session.payment_intent as string,
+      stripe_id: session.payment_intent,
       stripe_session_id: session.id,
       status: 'paid',
       metadata: session.metadata,
@@ -44,8 +45,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === 'checkout.session.expired') {
-    const session = event.data.object as Stripe.Checkout.Session
-    const { meet_id, team_id } = session.metadata || {}
+    const session = event.data.object
+    const meet_id = session.metadata?.meet_id
+    const team_id = session.metadata?.team_id
 
     await supabaseAdmin.from('payments')
       .update({ status: 'failed' })

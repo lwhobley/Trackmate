@@ -1,25 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Barlow:wght@400;500;600&display=swap');
-
 :root {
   --brand: #FF4B00;
   --brand-dim: #cc3c00;
-  --gold: #F5A623;
-  --bg: #050505;
-  --bg-1: #0A0A0A;
-  --bg-2: #111111;
-  --bg-3: #181818;
-  --bg-4: #222222;
-  --border: #222222;
-  --border-bright: #333333;
-  --text: #F2F2F2;
-  --text-muted: #888888;
-  --text-subtle: #444444;
-  --green: #00C853;
-  --red: #FF3D3D;
+  --bg: #060608;
+  --bg-1: #0C0C10;
+  --bg-2: #111116;
+  --bg-3: #18181F;
+  --border: #222228;
+  --border-bright: #333340;
+  --text: #F0F0F5;
+  --text-muted: #6B6B7A;
+  --text-subtle: #333340;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,32 +26,9 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Barlow', system-ui, sans-serif;
+  font-family: var(--font-body);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-}
-
-/* Track-stripe background texture */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: 
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 120px,
-      rgba(255,75,0,0.015) 120px,
-      rgba(255,75,0,0.015) 121px
-    );
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Headings use condensed athletic font */
-h1, h2, h3, h4, .font-display {
-  font-family: 'Barlow Condensed', system-ui, sans-serif;
-  letter-spacing: 0.02em;
 }
 
 /* Scrollbar */
@@ -65,78 +40,109 @@ h1, h2, h3, h4, .font-display {
 ::selection { background: rgba(255,75,0,0.3); color: white; }
 
 /* Focus */
-:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
 
-@layer utilities {
-  .text-brand { color: var(--brand); }
-  .bg-brand { background: var(--brand); }
+/* Display font utility */
+.font-display { font-family: var(--font-display); }
+.font-body { font-family: var(--font-body); }
 
-  /* Athletic gradient text */
-  .gradient-text {
-    background: linear-gradient(135deg, #FF4B00 0%, #FF8C00 50%, #FFB800 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* Brand utilities */
+.text-brand { color: var(--brand); }
+.bg-brand { background: var(--brand); }
 
-  /* Card with subtle top-border accent */
-  .card-accent {
-    border-top: 2px solid var(--brand);
-    background: var(--bg-2);
-    border-radius: 12px;
-  }
-
-  /* Glass panel */
-  .glass {
-    background: rgba(10,10,10,0.85);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.06);
-  }
-
-  /* Stat number */
-  .stat-num {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
-    font-size: 2.5rem;
-    line-height: 1;
-    letter-spacing: -0.01em;
-  }
-
-  /* Track lane row */
-  .lane-row {
-    border-left: 3px solid transparent;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .lane-row:hover {
-    border-left-color: var(--brand);
-    background: rgba(255,75,0,0.04);
-  }
-
-  /* Medal colors */
-  .medal-gold   { color: #F5A623; }
-  .medal-silver { color: #B0B8C1; }
-  .medal-bronze { color: #CD7F32; }
+/* Track lane stripe background — subtle diagonal lines */
+.track-bg {
+  background-image: repeating-linear-gradient(
+    -55deg,
+    transparent,
+    transparent 40px,
+    rgba(255,75,0,0.015) 40px,
+    rgba(255,75,0,0.015) 41px
+  );
 }
 
-/* Live pulse */
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,200,83,0.4); }
-  50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(0,200,83,0); }
-}
-.live-dot {
-  animation: pulse-dot 1.8s ease-in-out infinite;
+/* Glassmorphism */
+.glass {
+  background: rgba(12, 12, 16, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Slide up animation */
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(120deg, #FF4B00 0%, #FF8C42 50%, #FFD166 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.animate-in { animation: slide-up 0.25s ease forwards; }
 
-/* Number flash when result comes in */
-@keyframes flash {
-  0%   { color: var(--brand); }
-  100% { color: inherit; }
+/* Live dot pulse */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
 }
-.result-flash { animation: flash 0.8s ease forwards; }
+.live-dot { animation: live-pulse 1.4s ease-in-out infinite; }
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--bg-2) 25%, var(--bg-3) 50%, var(--bg-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Fade up animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.5s ease forwards; }
+.fade-up-1 { animation: fadeUp 0.5s 0.1s ease both; }
+.fade-up-2 { animation: fadeUp 0.5s 0.2s ease both; }
+.fade-up-3 { animation: fadeUp 0.5s 0.3s ease both; }
+.fade-up-4 { animation: fadeUp 0.5s 0.4s ease both; }
+
+/* Card hover */
+.card-hover {
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.card-hover:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+/* Meet type badge colors */
+.badge-hs    { background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid rgba(59,130,246,0.25); }
+.badge-ncaa  { background: rgba(139,92,246,0.12); color: #A78BFA; border: 1px solid rgba(139,92,246,0.25); }
+.badge-club  { background: rgba(255,75,0,0.12);   color: #FF8C42; border: 1px solid rgba(255,75,0,0.25); }
+.badge-elite { background: rgba(234,179,8,0.12);  color: #FCD34D; border: 1px solid rgba(234,179,8,0.25); }
+
+/* Stat number display */
+.stat-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Table row hover */
+tr.row-hover { transition: background 0.12s; }
+tr.row-hover:hover { background: rgba(255,255,255,0.025); }
+
+/* Input focus ring */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 3px rgba(255,75,0,0.12);
+}
+
+/* Sidebar nav active */
+.nav-active {
+  background: rgba(255,75,0,0.1);
+  color: #FF8C42;
+  border-left: 2px solid var(--brand);
+}
