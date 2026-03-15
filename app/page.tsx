@@ -74,7 +74,7 @@ export default async function LandingPage() {
             { icon: '⚡', title: 'FAT Bridge', desc: 'Watches your FinishLynx Results folder and syncs times instantly via LIF/CSV parsing.' },
             { icon: '📡', title: 'Live Results', desc: 'Supabase Realtime pushes results to scoreboards and coaches the moment they come in.' },
             { icon: '🏫', title: 'Multi-Ruleset', desc: 'NFHS wind rules, NCAA FAT requirements, AAU scoring — all auto-applied per meet type.' },
-            { icon: '🎟️', title: 'Stripe Payments', desc: 'Per-athlete and per-team entry fees collected at registration checkout.' },
+            { icon: '🎟️', title: 'Entry Management', desc: 'Team and athlete registration with seed times, event selection, and instant confirmation.' },
             { icon: '📄', title: 'Hy-Tek & TFRRS', desc: 'One-click export to Hy-Tek CSV, TFRRS XML, and state HS submission formats.' },
             { icon: '📱', title: 'PWA + Mobile', desc: 'Install on any device. Coaches check in athletes, officials update results on the track.' },
           ].map(f => (

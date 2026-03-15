@@ -294,7 +294,7 @@ export default function ManageMeetPage() {
               { icon: '📄', title: 'Hy-Tek CSV', desc: 'Standard Hy-Tek compatible results format', action: () => exportCSV('hytek'), label: 'Download CSV' },
               { icon: '🎓', title: 'TFRRS XML', desc: 'NCAA TFRRS submission format (meet_type: ncaa)', action: () => exportCSV('tfrrs'), label: 'Download XML' },
               { icon: '🏁', title: 'LIF Start Lists', desc: 'FinishLynx LIF format for timing system', action: () => alert('Select an event first via the Seeding tab'), label: 'Export via Seeding' },
-              { icon: '📧', title: 'Email Heat Sheets', desc: 'Send heat sheets to all registered coaches', action: () => alert('Configure Resend API key in .env'), label: 'Send Emails' },
+              { icon: '📧', title: 'Email Heat Sheets', desc: 'Send heat sheets to all registered coaches — coming soon', action: () => alert('Email feature coming soon'), label: 'Coming Soon' },
             ].map(item => (
               <div key={item.title} className="rounded-xl border border-[#2A2A2A] bg-[#111111] p-6">
                 <div className="text-3xl mb-3">{item.icon}</div>

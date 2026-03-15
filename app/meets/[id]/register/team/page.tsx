@@ -2,18 +2,17 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Meet, Event, Athlete, Team } from '@/lib/types'
 import { formatTime } from '@/lib/types'
 
 export default function RegisterTeamPage() {
   const { id: meetId } = useParams<{ id: string }>()
   const router = useRouter()
-  const [meet, setMeet] = useState<Meet | null>(null)
-  const [events, setEvents] = useState<Event[]>([])
-  const [athletes, setAthletes] = useState<Athlete[]>([])
-  const [team, setTeam] = useState<Team | null>(null)
+  const [meet, setMeet] = useState<any>(null)
+  const [events, setEvents] = useState<any[]>([])
+  const [athletes, setAthletes] = useState<any[]>([])
+  const [team, setTeam] = useState<any>(null)
   const [selections, setSelections] = useState<Record<string, { eventId: string; seedTime: string }[]>>({})
-  const [step, setStep] = useState<'team' | 'entries' | 'payment'>('team')
+  const [step, setStep] = useState<'team' | 'entries' | 'done'>('team')
   const [teamName, setTeamName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -22,18 +21,18 @@ export default function RegisterTeamPage() {
   useEffect(() => {
     const supabase = createClient()
     Promise.all([
-      supabase.from('meets').select('*, rulesets(*)').eq('id', meetId).single(),
+      supabase.from('meets').select('*').eq('id', meetId).single(),
       supabase.from('events').select('*').eq('meet_id', meetId).order('sort_order'),
       supabase.auth.getUser(),
     ]).then(async ([m, ev, { data: { user } }]) => {
-      setMeet(m.data as Meet)
-      setEvents((ev.data || []) as Event[])
+      setMeet(m.data)
+      setEvents(ev.data || [])
       if (user) {
-        const { data: p } = await supabase.from('profiles').select('*, orgs(*)').eq('id', user.id).single()
+        const { data: p } = await supabase.from('profiles').select('*').eq('id', user.id).single()
         setProfile(p)
         if (p?.org_id) {
           const { data: aths } = await supabase.from('athletes').select('*').eq('org_id', p.org_id)
-          setAthletes((aths || []) as Athlete[])
+          setAthletes(aths || [])
         }
       }
     })
@@ -50,7 +49,7 @@ export default function RegisterTeamPage() {
       coach_id: profile?.id,
     }).select().single()
     if (e) { setError(e.message); setLoading(false); return }
-    setTeam(t as Team)
+    setTeam(t)
     setStep('entries')
     setLoading(false)
   }
@@ -59,9 +58,7 @@ export default function RegisterTeamPage() {
     setSelections(prev => {
       const athleteSels = prev[athleteId] || []
       const existing = athleteSels.findIndex(s => s.eventId === eventId)
-      if (existing >= 0) {
-        return { ...prev, [athleteId]: athleteSels.filter((_, i) => i !== existing) }
-      }
+      if (existing >= 0) return { ...prev, [athleteId]: athleteSels.filter((_, i) => i !== existing) }
       return { ...prev, [athleteId]: [...athleteSels, { eventId, seedTime }] }
     })
   }
@@ -78,7 +75,6 @@ export default function RegisterTeamPage() {
     if (!team) return
     setLoading(true)
     const supabase = createClient()
-
     const entries = Object.entries(selections).flatMap(([athleteId, sels]) =>
       sels.map(s => ({
         meet_id: meetId,
@@ -86,44 +82,16 @@ export default function RegisterTeamPage() {
         team_id: team.id,
         event_id: s.eventId,
         seed_time: s.seedTime ? parseFloat(s.seedTime) : null,
-        status: 'pending' as const,
+        status: 'confirmed' as const, // auto-confirm since no payment
       }))
     )
-
     if (entries.length > 0) {
       const { error: e } = await supabase.from('entries').upsert(entries, {
         onConflict: 'meet_id,athlete_id,event_id'
       })
       if (e) { setError(e.message); setLoading(false); return }
     }
-
-    // Create payment record
-    const total = totalEntries() * (meet?.entry_fee_per_athlete || 0) + (meet?.entry_fee_per_team || 0)
-    if (total > 0) {
-      setStep('payment')
-    } else {
-      router.push(`/meets/${meetId}?registered=true`)
-    }
-    setLoading(false)
-  }
-
-  async function handleCheckout() {
-    setLoading(true)
-    const total = totalEntries() * (meet?.entry_fee_per_athlete || 0) + (meet?.entry_fee_per_team || 0)
-    const res = await fetch('/api/stripe-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        meetId, teamId: team?.id, orgId: profile?.org_id,
-        athleteCount: new Set(Object.keys(selections).filter(k => selections[k].length > 0)).size,
-        entryFeePerAthlete: meet?.entry_fee_per_athlete || 0,
-        entryFeePerTeam: meet?.entry_fee_per_team || 0,
-        meetName: meet?.name,
-        total,
-      })
-    })
-    const { url } = await res.json()
-    if (url) window.location.href = url
+    setStep('done')
     setLoading(false)
   }
 
@@ -136,13 +104,13 @@ export default function RegisterTeamPage() {
             <h1 className="text-lg font-black text-white">{meet?.name}</h1>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            {['team','entries','payment'].map((s, i) => (
+            {['team','entries','done'].map((s, i) => (
               <div key={s} className="flex items-center gap-2">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  step === s ? 'bg-[#FF4B00] text-white' : 
-                  ['team','entries','payment'].indexOf(step) > i ? 'bg-green-600 text-white' : 'bg-[#1a1a1a] text-zinc-500'
-                }`}>{i+1}</div>
-                <span className={step === s ? 'text-white font-medium' : 'text-zinc-500'}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
+                  step === s ? 'bg-[#FF4B00] text-white' :
+                  ['team','entries','done'].indexOf(step) > i ? 'bg-green-600 text-white' : 'bg-[#1a1a1a] text-zinc-500'
+                }`}>{i + 1}</div>
+                <span className={step === s ? 'text-white font-medium' : 'text-zinc-500 capitalize'}>{s}</span>
                 {i < 2 && <span className="text-zinc-700">›</span>}
               </div>
             ))}
@@ -179,8 +147,8 @@ export default function RegisterTeamPage() {
             </div>
             {athletes.length === 0 ? (
               <div className="rounded-xl border border-[#2A2A2A] bg-[#111111] p-8 text-center">
-                <p className="text-zinc-500">No athletes found in your organization.</p>
-                <a href={`/meets/${meetId}/register/athlete`} className="text-[#FF4B00] hover:underline text-sm mt-2 block">Add athletes first →</a>
+                <p className="text-zinc-500 mb-2">No athletes found in your organization.</p>
+                <a href={`/meets/${meetId}/register/athlete`} className="text-[#FF4B00] hover:underline text-sm">Add athletes first →</a>
               </div>
             ) : (
               <div className="space-y-4">
@@ -222,32 +190,14 @@ export default function RegisterTeamPage() {
           </div>
         )}
 
-        {step === 'payment' && (
-          <div className="max-w-md">
-            <h2 className="text-xl font-black text-white mb-6">Payment</h2>
-            <div className="rounded-xl border border-[#2A2A2A] bg-[#111111] p-6 space-y-4">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-zinc-400">Athletes entered</span><span className="text-white">{new Set(Object.keys(selections).filter(k => selections[k].length > 0)).size}</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Total entries</span><span className="text-white">{totalEntries()}</span></div>
-                {(meet?.entry_fee_per_athlete || 0) > 0 && (
-                  <div className="flex justify-between"><span className="text-zinc-400">Fee/athlete</span><span className="text-white">${meet?.entry_fee_per_athlete}</span></div>
-                )}
-                {(meet?.entry_fee_per_team || 0) > 0 && (
-                  <div className="flex justify-between"><span className="text-zinc-400">Team fee</span><span className="text-white">${meet?.entry_fee_per_team}</span></div>
-                )}
-                <div className="border-t border-[#2A2A2A] pt-2 flex justify-between font-bold">
-                  <span className="text-white">Total</span>
-                  <span className="text-[#FF4B00] text-lg">${(totalEntries() * (meet?.entry_fee_per_athlete || 0) + (meet?.entry_fee_per_team || 0)).toFixed(2)}</span>
-                </div>
-              </div>
-              <button onClick={handleCheckout} disabled={loading}
-                className="w-full h-10 bg-[#FF4B00] hover:bg-[#e04200] disabled:opacity-50 text-white font-semibold rounded-lg text-sm transition-colors">
-                {loading ? 'Redirecting to Stripe...' : '💳 Pay with Stripe →'}
-              </button>
-              <button onClick={() => router.push(`/meets/${meetId}?registered=true`)}
-                className="w-full text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-                Skip payment (free meet or pay later)
-              </button>
+        {step === 'done' && (
+          <div className="max-w-md text-center mx-auto py-12">
+            <div className="text-6xl mb-4">✅</div>
+            <h2 className="text-2xl font-black text-white mb-2">Registration Complete!</h2>
+            <p className="text-zinc-400 text-sm mb-8">{team?.name} has been registered with {totalEntries()} entries.</p>
+            <div className="flex gap-3 justify-center">
+              <a href={`/meets/${meetId}`} className="px-6 py-2.5 border border-[#2A2A2A] text-zinc-400 hover:text-white rounded-lg text-sm transition-colors">View Meet</a>
+              <a href={`/meets/${meetId}/live`} className="px-6 py-2.5 bg-[#FF4B00] hover:bg-[#e04200] text-white font-semibold rounded-lg text-sm transition-colors">Live Results →</a>
             </div>
           </div>
         )}
