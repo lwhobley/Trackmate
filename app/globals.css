@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand: #FF4B00;
+  --brand-hover: #e04200;
+  --bg: #080808;
+  --bg-1: #0D0D0D;
+  --bg-2: #111111;
+  --bg-3: #1a1a1a;
+  --border: #2A2A2A;
+  --text: #ffffff;
+  --text-muted: #71717a;
+  --text-subtle: #3f3f46;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-1); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+/* Selection */
+::selection { background: #FF4B0040; color: white; }
+
+/* Focus */
+:focus-visible { outline: 2px solid #FF4B00; outline-offset: 2px; }
+
+@layer utilities {
+  .text-brand { color: #FF4B00; }
+  .bg-brand { background: #FF4B00; }
+  .border-brand { border-color: #FF4B00; }
+  
+  .glass {
+    background: rgba(17, 17, 17, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, #FF4B00, #ff8c00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Drag and drop */
+.dragging { opacity: 0.5; cursor: grabbing; }
+.drag-over { outline: 2px dashed #FF4B00; outline-offset: 2px; background: rgba(255,75,0,0.05); }
+
+/* Realtime pulse */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.live-dot { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+/* Heat lane */
+.lane-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.lane-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255,75,0,0.15);
+}

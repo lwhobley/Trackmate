@@ -1,0 +1,19 @@
+{
+  "name": "TrackMate",
+  "short_name": "TrackMate",
+  "description": "Track & Field Meet Management Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#FF4B00",
+  "orientation": "any",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "categories": ["sports", "productivity"],
+  "shortcuts": [
+    { "name": "Dashboard", "url": "/dashboard/orgs", "description": "Go to dashboard" }
+  ]
+}

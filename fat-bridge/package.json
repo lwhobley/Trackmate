@@ -1,0 +1,25 @@
+{
+  "name": "trackmeet-bridge",
+  "version": "1.0.0",
+  "description": "FAT Bridge CLI for TrackMate — watches FinishLynx Results folder and syncs to Supabase",
+  "main": "dist/index.js",
+  "bin": {
+    "trackmeet-bridge": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "node-fetch": "^3.3.2",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2"
+  },
+  "engines": { "node": ">=18" }
+}
