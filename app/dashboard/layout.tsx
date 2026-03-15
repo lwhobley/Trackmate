@@ -14,56 +14,60 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: profile } = await supabase
     .from('profiles').select('*, orgs(*)').eq('id', user.id).single<ProfileWithOrg>()
 
+  const navItems = [
+    { href: '/dashboard/orgs', label: 'My Organization', icon: '🏫' },
+    { href: '/dashboard/meets', label: 'Browse Meets', icon: '🏁' },
+  ]
+
+  const initial = (profile?.name || user.email || 'U').charAt(0).toUpperCase()
+
   return (
-    <div className="min-h-screen bg-[#05050A] flex">
+    <div className="min-h-screen flex" style={{background:'var(--bg-2)'}}>
       {/* Sidebar */}
-      <aside className="w-56 border-r border-[#252535] bg-[#08080F] flex flex-col fixed h-full">
+      <aside className="w-60 flex flex-col fixed h-full z-20 border-r" style={{background:'rgba(255,255,255,0.85)',backdropFilter:'blur(20px)',borderColor:'rgba(108,99,255,0.1)'}}>
         {/* Logo */}
-        <div className="p-5 border-b border-[#252535]">
+        <div className="px-5 py-5 border-b" style={{borderColor:'rgba(108,99,255,0.08)'}}>
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 bg-[#FF3B00] rounded-lg flex items-center justify-center shadow-lg shadow-orange-600/30">
-              <span className="font-display font-black italic text-white text-sm">TM</span>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm transition-shadow group-hover:shadow-md" style={{background:'linear-gradient(135deg,#FF4B00,#FF7A3D)'}}>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 17L10 3l7 14M6 11h8" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
-            <span className="font-display font-black italic text-white text-lg tracking-wide">TRACKMATE</span>
+            <span style={{fontFamily:'var(--font-body)',fontWeight:700,fontSize:'16px',color:'var(--text)'}}>TrackMate</span>
           </Link>
         </div>
 
-        {/* Nav */}
+        {/* Nav items */}
         <nav className="flex-1 p-3 space-y-0.5">
-          <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-[#444458]">Navigation</p>
-          {[
-            { href: '/dashboard/orgs', label: 'My Meets', icon: '🏟️' },
-            { href: '/dashboard/meets', label: 'Browse Meets', icon: '🔍' },
-          ].map(item => (
-            <Link key={item.href} href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#8888A0] hover:text-white hover:bg-[#16161F] transition-all group">
+          <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest" style={{color:'var(--text-subtle)'}}>Menu</p>
+          {navItems.map(item => (
+            <Link key={item.href} href={item.href} className="sidebar-link">
               <span className="text-base">{item.icon}</span>
-              <span className="font-medium">{item.label}</span>
+              {item.label}
             </Link>
           ))}
         </nav>
 
-        {/* User */}
-        <div className="p-3 border-t border-[#252535]">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#0F0F1A] mb-1">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#FF3B00] to-[#FF8C00] flex items-center justify-center text-xs text-white font-black shadow">
-              {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
+        {/* Profile */}
+        <div className="p-3 border-t" style={{borderColor:'rgba(108,99,255,0.08)'}}>
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-2xl mb-1" style={{background:'rgba(108,99,255,0.05)'}}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 text-white shadow-sm"
+              style={{background:'linear-gradient(135deg,#6C63FF,#9B8FFF)'}}>
+              {initial}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-white truncate">{profile?.name || 'User'}</p>
-              <p className="text-[10px] text-[#8888A0] truncate">{profile?.orgs?.name || 'No org'}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold truncate" style={{color:'var(--text)'}}>{profile?.name || 'User'}</p>
+              <p className="text-xs truncate" style={{color:'var(--text-muted)'}}>{profile?.orgs?.name || 'No org'}</p>
             </div>
           </div>
           <form action={signOut}>
-            <button type="submit" className="w-full text-left px-3 py-1.5 text-xs text-[#444458] hover:text-[#8888A0] transition-colors rounded-lg hover:bg-[#0F0F1A]">
-              Sign out →
+            <button type="submit" className="sidebar-link w-full text-sm" style={{color:'var(--text-muted)'}}>
+              <span>↩</span> Sign out
             </button>
           </form>
         </div>
       </aside>
 
       {/* Main */}
-      <main className="flex-1 ml-56 min-h-screen">
+      <main className="flex-1 ml-60 min-h-screen" style={{background:'var(--bg-2)'}}>
         {children}
       </main>
     </div>

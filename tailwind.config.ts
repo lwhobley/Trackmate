@@ -10,16 +10,12 @@ const config: Config = {
     extend: {
       colors: {
         brand: '#FF4B00',
+        accent: '#6C63FF',
+        teal: '#00C2B8',
       },
       fontFamily: {
-        display: ['Barlow Condensed', 'sans-serif'],
-        body: ['Barlow', 'sans-serif'],
-      },
-      fontWeight: {
-        '600': '600',
-        '700': '700',
-        '800': '800',
-        '900': '900',
+        display: ['DM Serif Display', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
       },
     },
   },
