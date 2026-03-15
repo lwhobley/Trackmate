@@ -36,7 +36,7 @@ export default function RegisterAthletePage() {
     for (const [k, v] of Object.entries(prs)) {
       if (v) parsedPrs[k] = parseFloat(v)
     }
-    const { error: e } = await supabase.from('athletes').insert({
+    const { error: insertErr } = await supabase.from('athletes').insert({
       org_id: profile.org_id,
       name: form.name,
       grade: form.grade || null,
@@ -44,7 +44,7 @@ export default function RegisterAthletePage() {
       bib: form.bib || null,
       prs: parsedPrs,
     })
-    if (e) { setError(e.message); setLoading(false); return }
+    if (insertErr) { setError(insertErr.message); setLoading(false); return }
     router.push(`/meets/${meetId}/register/team`)
   }
 
